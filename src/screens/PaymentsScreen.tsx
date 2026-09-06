@@ -1,0 +1,275 @@
+import React, { useCallback, useMemo, useState } from 'react';
+import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme';
+import { useThemeColors, useThemeTypography } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
+import ScreenHeader from '../components/ScreenHeader';
+import Button from '../components/Button';
+import AppModal from '../components/AppModal';
+import PaymentDetailsModal from '../components/PaymentDetailsModal';
+import { feeItems, FeeItem } from '../data/mockData';
+import { useAuth } from '../context/AuthContext';
+import { usePayments } from '../context/PaymentContext';
+
+export default function PaymentsScreen() {
+  const colors = useThemeColors();
+  const typography = useThemeTypography();
+  const { t } = useLanguage();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { user } = useAuth();
+  const { getUserPaymentRecords } = usePayments();
+  const navigation = useNavigation<any>();
+  const [selected, setSelected] = useState<FeeItem | null>(null);
+  const [payAmount, setPayAmount] = useState('');
+  const [showDetails, setShowDetails] = useState(false);
+  const [paidTotals, setPaidTotals] = useState<Record<string, number>>({});
+
+  const canManageAccount = user ? ['treasurer', 'admin', 'chairman'].includes(user.role) : false;
+  const isDependent = !!user?.dependentOf;
+
+  const loadTotals = useCallback(async () => {
+    if (!user) return;
+    const totals: Record<string, number> = {};
+    for (const item of feeItems) {
+      const records = await getUserPaymentRecords(user.email, item.id);
+      totals[item.id] = records.reduce((sum, r) => sum + r.amount, 0);
+    }
+    setPaidTotals(totals);
+  }, [user?.email]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadTotals();
+    }, [loadTotals])
+  );
+
+  const openItem = (item: FeeItem) => {
+    const paid = paidTotals[item.id] ?? 0;
+    const remaining = Math.max(0, item.amount - paid);
+    setSelected(item);
+    setPayAmount(remaining > 0 ? String(remaining) : String(item.amount));
+  };
+
+  const closeAmountModal = () => {
+    setSelected(null);
+    setPayAmount('');
+  };
+
+  const handleRecorded = () => {
+    setShowDetails(false);
+    setSelected(null);
+    loadTotals();
+  };
+
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <ScreenHeader title={t('payments.title')} subtitle={t('payments.subtitle')} />
+
+      {isDependent && (
+        <View style={styles.dependentBanner}>
+          <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
+          <Text style={styles.dependentBannerText}>
+            {t('payments.dependentBanner', { guardian: user?.dependentOf ?? '' })}
+          </Text>
+        </View>
+      )}
+
+      {canManageAccount && (
+        <TouchableOpacity style={styles.manageLink} onPress={() => navigation.navigate('BankAccountSettings')}>
+          <Ionicons name="settings-outline" size={15} color={colors.primary} />
+          <Text style={styles.manageLinkText}>{t('payments.manageBank')}</Text>
+        </TouchableOpacity>
+      )}
+
+      <FlatList
+        data={feeItems}
+        keyExtractor={(item) => item.id}
+        contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.xl }}
+        renderItem={({ item }) => {
+          const paid = paidTotals[item.id] ?? 0;
+          const remaining = Math.max(0, item.amount - paid);
+          const pct = Math.min(100, Math.round((paid / item.amount) * 100));
+          return (
+            <View style={styles.card}>
+              <View style={styles.iconWrap}>
+                <Ionicons name="card-outline" size={22} color={colors.white} />
+              </View>
+              <View style={{ flex: 1, marginLeft: spacing.md }}>
+                <Text style={typography.h3}>{item.title}</Text>
+                <Text style={[typography.caption, { marginTop: 2 }]} numberOfLines={2}>
+                  {item.description}
+                </Text>
+                <View style={styles.rowBetween}>
+                  <Text style={styles.amount}>RM {item.amount.toFixed(2)}</Text>
+                  <Text style={styles.period}>{item.period}</Text>
+                </View>
+                <View style={styles.progressTrack}>
+                  <View style={[styles.progressFill, { width: `${pct}%` }]} />
+                </View>
+                <Text style={styles.progressLabel}>
+                  {paid > 0
+                    ? t('payments.paidAmount', { paid: paid.toFixed(2) }) +
+                      (remaining > 0 ? t('payments.balance', { remaining: remaining.toFixed(2) }) : t('payments.complete'))
+                    : t('payments.notPaid')}
+                </Text>
+                {!isDependent && (
+                  <Button
+                    label={paid > 0 && remaining > 0 ? t('payments.payBalance') : t('payments.payNow')}
+                    onPress={() => openItem(item)}
+                    style={{ marginTop: spacing.sm }}
+                    disabled={remaining <= 0}
+                  />
+                )}
+              </View>
+            </View>
+          );
+        }}
+      />
+
+      {selected && (
+        <AppModal visible={!showDetails} onClose={closeAmountModal}>
+          <Text style={typography.h3}>{selected.title}</Text>
+          <Text style={[typography.caption, { marginTop: spacing.xs }]}>{t('payments.enterAmount')}</Text>
+          <View style={styles.amountWrap}>
+            <Text style={styles.currencyPrefix}>RM</Text>
+            <TextInput value={payAmount} onChangeText={setPayAmount} keyboardType="numeric" style={styles.amountInput} />
+          </View>
+          <View style={styles.modalActions}>
+            <Button label={t('common.cancel')} variant="ghost" onPress={closeAmountModal} style={{ flex: 1 }} />
+            <Button
+              label={t('common.continueLabel')}
+              onPress={() => setShowDetails(true)}
+              disabled={!payAmount || Number(payAmount) <= 0}
+              style={{ flex: 1 }}
+            />
+          </View>
+        </AppModal>
+      )}
+
+      {selected && (
+        <PaymentDetailsModal
+          visible={showDetails}
+          onClose={() => setShowDetails(false)}
+          onRecorded={handleRecorded}
+          feeId={selected.id}
+          title={selected.title}
+          feeType="yuran"
+          amount={Number(payAmount) || 0}
+        />
+      )}
+    </View>
+  );
+}
+
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    dependentBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: withAlpha(colors.primary, 0.08),
+      marginHorizontal: spacing.lg,
+      marginTop: spacing.md,
+      padding: spacing.md,
+      borderRadius: radius.md,
+    },
+    dependentBannerText: {
+      flex: 1,
+      fontSize: 12,
+      color: colors.primaryDark,
+      lineHeight: 17,
+    },
+    manageLink: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 6,
+      marginHorizontal: spacing.lg,
+      marginTop: spacing.md,
+    },
+    manageLinkText: {
+      color: colors.primary,
+      fontWeight: '600',
+      fontSize: 13,
+    },
+    card: {
+      flexDirection: 'row',
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      marginBottom: spacing.md,
+      ...shadow.card,
+    },
+    iconWrap: {
+      width: 44,
+      height: 44,
+      borderRadius: radius.sm,
+      backgroundColor: '#2E6FD9',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    rowBetween: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      marginTop: spacing.sm,
+    },
+    amount: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+    period: {
+      fontSize: 12,
+      color: colors.textMuted,
+      backgroundColor: colors.primaryLight,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 2,
+      borderRadius: radius.full,
+    },
+    progressTrack: {
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: colors.border,
+      marginTop: spacing.sm,
+      overflow: 'hidden',
+    },
+    progressFill: {
+      height: '100%',
+      borderRadius: 3,
+      backgroundColor: colors.primary,
+    },
+    progressLabel: {
+      fontSize: 11,
+      color: colors.textMuted,
+      marginTop: spacing.xs,
+    },
+    amountWrap: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      marginVertical: spacing.md,
+      gap: spacing.xs,
+    },
+    currencyPrefix: {
+      fontSize: 18,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+    amountInput: {
+      flex: 1,
+      fontSize: 22,
+      fontWeight: '700',
+      color: colors.text,
+      paddingVertical: spacing.sm,
+    },
+    modalActions: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+      marginTop: spacing.md,
+    },
+  });

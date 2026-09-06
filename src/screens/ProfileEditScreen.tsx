@@ -1,0 +1,197 @@
+import React, { useMemo, useState } from 'react';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import type { RootStackParamList } from '../navigation/types';
+import { radius, spacing, ColorPalette } from '../theme/theme';
+import { useThemeColors } from '../context/ThemeContext';
+import { useLanguage } from '../context/LanguageContext';
+import ScreenHeader from '../components/ScreenHeader';
+import Button from '../components/Button';
+import { useAuth } from '../context/AuthContext';
+import { pickAvatarImage } from '../utils/avatarPicker';
+
+type Props = NativeStackScreenProps<RootStackParamList, 'ProfileEdit'>;
+
+export default function ProfileEditScreen({ navigation }: Props) {
+  const colors = useThemeColors();
+  const { t } = useLanguage();
+  const styles = useMemo(() => makeStyles(colors), [colors]);
+  const { user, updateProfile, updateAvatar } = useAuth();
+  const [name, setName] = useState(user?.name ?? '');
+  const [phone, setPhone] = useState(user?.phone ?? '');
+  const [address, setAddress] = useState(user?.address ?? '');
+  const [postcode, setPostcode] = useState(user?.postcode ?? '');
+  const [city, setCity] = useState(user?.city ?? '');
+  const [saving, setSaving] = useState(false);
+  const [changingAvatar, setChangingAvatar] = useState(false);
+
+  const handleChangeAvatar = async () => {
+    setChangingAvatar(true);
+    try {
+      const result = await pickAvatarImage();
+      if (result.status === 'success') {
+        await updateAvatar(result.uri);
+      } else if (result.status === 'permission-denied') {
+        Alert.alert('', t('profile.avatarPermissionDenied'));
+      }
+    } finally {
+      setChangingAvatar(false);
+    }
+  };
+
+  const handleSave = async () => {
+    setSaving(true);
+    await updateProfile({
+      name: name.trim(),
+      phone: phone.trim(),
+      address: address.trim(),
+      postcode: postcode.trim(),
+      city: city.trim(),
+    });
+    setSaving(false);
+    navigation.goBack();
+  };
+
+  return (
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
+      <ScreenHeader title={t('profileEdit.title')} onBack={() => navigation.goBack()} />
+      <ScrollView contentContainerStyle={{ padding: spacing.lg }}>
+        <View style={styles.avatarSection}>
+          <TouchableOpacity
+            style={styles.avatarWrap}
+            activeOpacity={0.8}
+            onPress={handleChangeAvatar}
+            disabled={changingAvatar}
+          >
+            {user?.avatarUri ? (
+              <Image source={{ uri: user.avatarUri }} style={styles.avatar} />
+            ) : (
+              <View style={styles.avatar}>
+                <Ionicons name="person" size={30} color={colors.white} />
+              </View>
+            )}
+            <View style={styles.avatarBadge}>
+              <Ionicons name="camera" size={12} color={colors.white} />
+            </View>
+          </TouchableOpacity>
+          <Text style={styles.changePhotoText} onPress={handleChangeAvatar}>
+            {t('profile.changePhoto')}
+          </Text>
+        </View>
+
+        <Text style={styles.fieldLabel}>{t('profileEdit.fullName')}</Text>
+        <TextInput value={name} onChangeText={setName} style={styles.input} placeholderTextColor={colors.textMuted} />
+
+        <Text style={styles.fieldLabel}>{t('common.phone')}</Text>
+        <TextInput
+          value={phone}
+          onChangeText={setPhone}
+          keyboardType="phone-pad"
+          style={styles.input}
+          placeholderTextColor={colors.textMuted}
+        />
+
+        <Text style={styles.fieldLabel}>{t('common.address')}</Text>
+        <TextInput value={address} onChangeText={setAddress} style={styles.input} placeholderTextColor={colors.textMuted} />
+
+        <View style={styles.row}>
+          <View style={{ flex: 1 }}>
+            <Text style={styles.fieldLabel}>{t('common.postcode')}</Text>
+            <TextInput
+              value={postcode}
+              onChangeText={setPostcode}
+              keyboardType="number-pad"
+              maxLength={5}
+              style={styles.input}
+              placeholderTextColor={colors.textMuted}
+            />
+          </View>
+          <View style={{ flex: 2 }}>
+            <Text style={styles.fieldLabel}>{t('common.city')}</Text>
+            <TextInput value={city} onChangeText={setCity} style={styles.input} placeholderTextColor={colors.textMuted} />
+          </View>
+        </View>
+
+        <View style={styles.infoBox}>
+          <Text style={styles.infoText}>
+            {t('profileEdit.infoBox', { park: user?.parkName ?? '', role: t(`role.${user?.role ?? 'resident'}`) })}
+          </Text>
+        </View>
+
+        <Button label={t('common.save')} onPress={handleSave} loading={saving} style={{ marginTop: spacing.lg }} />
+      </ScrollView>
+    </View>
+  );
+}
+
+const makeStyles = (colors: ColorPalette) =>
+  StyleSheet.create({
+    avatarSection: {
+      alignItems: 'center',
+      marginBottom: spacing.md,
+    },
+    avatarWrap: {
+      width: 72,
+      height: 72,
+    },
+    avatar: {
+      width: 72,
+      height: 72,
+      borderRadius: 36,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    avatarBadge: {
+      position: 'absolute',
+      right: -2,
+      bottom: -2,
+      width: 24,
+      height: 24,
+      borderRadius: 12,
+      backgroundColor: colors.primary,
+      borderWidth: 2,
+      borderColor: colors.surface,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    changePhotoText: {
+      marginTop: spacing.sm,
+      fontSize: 12,
+      fontWeight: '700',
+      color: colors.primary,
+    },
+    fieldLabel: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.text,
+      marginBottom: spacing.xs,
+      marginTop: spacing.md,
+    },
+    input: {
+      backgroundColor: colors.surface,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      height: 48,
+      fontSize: 14,
+      color: colors.text,
+    },
+    row: {
+      flexDirection: 'row',
+      gap: spacing.sm,
+    },
+    infoBox: {
+      marginTop: spacing.lg,
+      padding: spacing.md,
+      borderRadius: radius.md,
+      backgroundColor: colors.primaryLight,
+    },
+    infoText: {
+      fontSize: 12,
+      color: colors.primaryDark,
+      lineHeight: 17,
+    },
+  });
