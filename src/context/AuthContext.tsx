@@ -117,7 +117,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       setUser(normalize(snap.data()));
       return { success: true };
-    } catch {
+    } catch (err: any) {
+      console.error('login failed:', err?.code ?? err);
       return { success: false, messageKey: 'common.loginFailed' };
     }
   };
@@ -149,6 +150,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(normalize(newUser));
       return { success: true };
     } catch (err: any) {
+      console.error('register failed:', err?.code ?? err);
       if (err?.code === 'auth/email-already-in-use') {
         return { success: false, messageKey: 'common.emailTaken' };
       }
@@ -231,6 +233,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await persistUser({ ...user, familyMembers: [...user.familyMembers, newMember] });
       return { success: true };
     } catch (err: any) {
+      console.error('addFamilyMemberWithLogin failed:', err?.code ?? err);
       if (err?.code === 'auth/email-already-in-use') {
         return { success: false, messageKey: 'common.emailTaken' };
       }

@@ -17,6 +17,7 @@ import { useThemeColors, useThemeTypography } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
+import PasswordStrengthChecklist, { PasswordMatchIndicator } from '../components/PasswordStrengthChecklist';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
@@ -81,7 +82,7 @@ export default function RegisterScreen({ navigation }: Props) {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.background }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
       <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
         <Text style={typography.h1}>{t('register.title')}</Text>
@@ -101,7 +102,14 @@ export default function RegisterScreen({ navigation }: Props) {
             placeholder={t('register.parkNamePlaceholder')}
           />
           <Text style={styles.parkHint}>{t('register.parkHint')}</Text>
-          <Field label={t('common.address')} icon="home-outline" value={address} onChangeText={setAddress} placeholder={t('register.addressPlaceholder')} />
+          <Field
+            label={t('common.address')}
+            icon="home-outline"
+            value={address}
+            onChangeText={setAddress}
+            placeholder={t('register.addressPlaceholder')}
+            multiline
+          />
           <View style={styles.row}>
             <Field
               label={t('common.postcode')}
@@ -123,7 +131,9 @@ export default function RegisterScreen({ navigation }: Props) {
             />
           </View>
           <Field label={t('register.password')} icon="lock-closed-outline" value={password} onChangeText={setPassword} placeholder={t('register.passwordPlaceholder')} secureTextEntry />
+          <PasswordStrengthChecklist password={password} />
           <Field label={t('register.confirmPassword')} icon="lock-closed-outline" value={confirmPassword} onChangeText={setConfirmPassword} placeholder={t('register.confirmPasswordPlaceholder')} secureTextEntry />
+          <PasswordMatchIndicator password={password} confirmPassword={confirmPassword} />
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
@@ -145,6 +155,7 @@ function Field({
   label,
   icon,
   style,
+  multiline,
   ...inputProps
 }: {
   label: string;
@@ -156,6 +167,7 @@ function Field({
   keyboardType?: 'default' | 'email-address' | 'phone-pad' | 'number-pad';
   autoCapitalize?: 'none' | 'sentences' | 'words';
   maxLength?: number;
+  multiline?: boolean;
   style?: ViewStyle;
 }) {
   const colors = useThemeColors();
@@ -163,12 +175,14 @@ function Field({
   return (
     <View style={style}>
       <Text style={styles.fieldLabel}>{label}</Text>
-      <View style={styles.inputWrap}>
-        <Ionicons name={icon} size={18} color={colors.textMuted} />
+      <View style={[styles.inputWrap, multiline && styles.inputWrapMultiline]}>
+        <Ionicons name={icon} size={18} color={colors.textMuted} style={multiline ? styles.multilineIcon : undefined} />
         <TextInput
           {...inputProps}
+          multiline={multiline}
+          textAlignVertical={multiline ? 'top' : 'center'}
           placeholderTextColor={colors.textMuted}
-          style={styles.input}
+          style={[styles.input, multiline && styles.inputMultiline]}
         />
       </View>
     </View>
@@ -217,6 +231,19 @@ const makeStyles = (colors: ColorPalette) =>
       paddingHorizontal: spacing.md,
       height: 50,
       gap: spacing.sm,
+    },
+    inputWrapMultiline: {
+      alignItems: 'flex-start',
+      height: undefined,
+      minHeight: 50,
+      paddingVertical: spacing.sm,
+    },
+    multilineIcon: {
+      marginTop: 2,
+    },
+    inputMultiline: {
+      minHeight: 30,
+      paddingTop: 0,
     },
     input: {
       flex: 1,

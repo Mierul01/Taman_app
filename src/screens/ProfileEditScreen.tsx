@@ -1,5 +1,16 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import {
+  Alert,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -10,6 +21,7 @@ import ScreenHeader from '../components/ScreenHeader';
 import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
 import { pickAvatarImage } from '../utils/avatarPicker';
+import PasswordStrengthChecklist, { PasswordMatchIndicator } from '../components/PasswordStrengthChecklist';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProfileEdit'>;
 
@@ -77,9 +89,12 @@ export default function ProfileEditScreen({ navigation }: Props) {
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: colors.background }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <ScreenHeader title={t('profileEdit.title')} onBack={() => navigation.goBack()} />
-      <ScrollView contentContainerStyle={{ padding: spacing.lg }}>
+      <ScrollView contentContainerStyle={{ padding: spacing.lg }} keyboardShouldPersistTaps="handled">
         <View style={styles.avatarSection}>
           <TouchableOpacity
             style={styles.avatarWrap}
@@ -116,7 +131,14 @@ export default function ProfileEditScreen({ navigation }: Props) {
         />
 
         <Text style={styles.fieldLabel}>{t('common.address')}</Text>
-        <TextInput value={address} onChangeText={setAddress} style={styles.input} placeholderTextColor={colors.textMuted} />
+        <TextInput
+          value={address}
+          onChangeText={setAddress}
+          style={[styles.input, styles.inputMultiline]}
+          placeholderTextColor={colors.textMuted}
+          multiline
+          textAlignVertical="top"
+        />
 
         <View style={styles.row}>
           <View style={{ flex: 1 }}>
@@ -156,6 +178,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
             style={styles.input}
             placeholderTextColor={colors.textMuted}
           />
+          <PasswordStrengthChecklist password={newPassword} />
 
           <Text style={styles.fieldLabel}>{t('profileEdit.confirmNewPassword')}</Text>
           <TextInput
@@ -166,6 +189,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
             style={styles.input}
             placeholderTextColor={colors.textMuted}
           />
+          <PasswordMatchIndicator password={newPassword} confirmPassword={confirmNewPassword} />
 
           {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
 
@@ -179,7 +203,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
           />
         </View>
       </ScrollView>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 
@@ -236,6 +260,11 @@ const makeStyles = (colors: ColorPalette) =>
       height: 48,
       fontSize: 14,
       color: colors.text,
+    },
+    inputMultiline: {
+      height: undefined,
+      minHeight: 48,
+      paddingVertical: spacing.sm,
     },
     row: {
       flexDirection: 'row',
