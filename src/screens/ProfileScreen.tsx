@@ -79,12 +79,15 @@ export default function ProfileScreen() {
   const infoRows = [
     { key: 'email', icon: 'mail-outline' as const, label: t('common.email'), value: user?.email || '-', showVerifyBadge: true },
     { key: 'phone', icon: 'call-outline' as const, label: t('common.phone'), value: user?.phone || '-' },
-    { key: 'address', icon: 'home-outline' as const, label: t('common.address'), value: user?.address || '-' },
+    { key: 'address', icon: 'home-outline' as const, label: t('common.address'), value: user?.address ? toTitleCase(user.address) : '-' },
     {
       key: 'postcodeCity',
       icon: 'location-outline' as const,
       label: t('profile.postcodeCity'),
-      value: [user?.postcode, user?.city, user?.district].filter(Boolean).join(', ') || '-',
+      value:
+        [user?.postcode, user?.city && toTitleCase(user.city), user?.district && toTitleCase(user.district)]
+          .filter(Boolean)
+          .join(', ') || '-',
     },
   ];
 
