@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme';
@@ -9,7 +9,6 @@ import ScreenHeader from '../components/ScreenHeader';
 import Button from '../components/Button';
 import AppModal from '../components/AppModal';
 import { useAuth, Role } from '../context/AuthContext';
-import { pickAvatarImage } from '../utils/avatarPicker';
 
 const RELATIONSHIPS = ['Isteri', 'Suami', 'Anak', 'Ibu', 'Bapa', 'Lain-lain'];
 
@@ -18,24 +17,9 @@ export default function ProfileScreen() {
   const typography = useThemeTypography();
   const { t } = useLanguage();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { user, logout, updateAvatar, addFamilyMember, removeFamilyMember, addFamilyMemberWithLogin } = useAuth();
+  const { user, logout, addFamilyMember, removeFamilyMember, addFamilyMemberWithLogin } = useAuth();
   const navigation = useNavigation<any>();
   const [confirmLogout, setConfirmLogout] = useState(false);
-  const [changingAvatar, setChangingAvatar] = useState(false);
-
-  const handleChangeAvatar = async () => {
-    setChangingAvatar(true);
-    try {
-      const result = await pickAvatarImage();
-      if (result.status === 'success') {
-        await updateAvatar(result.uri);
-      } else if (result.status === 'permission-denied') {
-        Alert.alert('', t('profile.avatarPermissionDenied'));
-      }
-    } finally {
-      setChangingAvatar(false);
-    }
-  };
 
   const [familyVisible, setFamilyVisible] = useState(false);
   const [memberName, setMemberName] = useState('');
@@ -136,12 +120,7 @@ export default function ProfileScreen() {
         <ScreenHeader title={t('profile.title')} />
 
         <View style={styles.profileCard}>
-          <TouchableOpacity
-            style={styles.avatarWrap}
-            activeOpacity={0.8}
-            onPress={handleChangeAvatar}
-            disabled={changingAvatar}
-          >
+          <View style={styles.avatarWrap}>
             {user?.avatarUri ? (
               <Image source={{ uri: user.avatarUri }} style={styles.avatar} />
             ) : (
@@ -149,13 +128,7 @@ export default function ProfileScreen() {
                 <Ionicons name="person" size={46} color={colors.white} />
               </View>
             )}
-            <View style={styles.avatarBadge}>
-              <Ionicons name="camera" size={16} color={colors.white} />
-            </View>
-          </TouchableOpacity>
-          <Text style={styles.changePhotoText} onPress={handleChangeAvatar}>
-            {t('profile.changePhoto')}
-          </Text>
+          </View>
           <Text style={[typography.h3, styles.nameText]} numberOfLines={2} ellipsizeMode="tail">
             {user?.name}
           </Text>
@@ -378,25 +351,6 @@ const makeStyles = (colors: ColorPalette) =>
       backgroundColor: colors.primary,
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    avatarBadge: {
-      position: 'absolute',
-      right: -2,
-      bottom: -2,
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: colors.primary,
-      borderWidth: 2,
-      borderColor: colors.surface,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    changePhotoText: {
-      marginTop: spacing.sm,
-      fontSize: 12,
-      fontWeight: '700',
-      color: colors.primary,
     },
     nameText: {
       marginTop: spacing.sm,

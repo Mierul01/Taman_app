@@ -11,6 +11,7 @@ import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { Program, emergencyContacts } from '../data/mockData';
 import { getAllPrograms } from '../data/programsStore';
+import HighlightCarousel from '../components/HighlightCarousel';
 
 type Props = BottomTabScreenProps<MainTabParamList, 'Dashboard'>;
 
@@ -42,7 +43,7 @@ export default function DashboardScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
-  const [upcoming, setUpcoming] = useState<Program | null>(null);
+  const [upcoming, setUpcoming] = useState<Program[]>([]);
   const menuItems = user && user.role !== 'resident' ? [...baseMenuItems, collectionsMenuItem] : baseMenuItems;
   const emergencyPreview = emergencyContacts.slice(0, 2);
 
@@ -51,8 +52,8 @@ export default function DashboardScreen({ navigation }: Props) {
       const today = new Date().toISOString().slice(0, 10);
       getAllPrograms().then((all) => {
         const scoped = all.filter((p) => !p.parkName || p.parkName === user?.parkName);
-        const next = scoped.filter((p) => p.dateISO >= today).sort((a, b) => a.dateISO.localeCompare(b.dateISO))[0];
-        setUpcoming(next ?? null);
+        const next = scoped.filter((p) => p.dateISO >= today).sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+        setUpcoming(next.slice(0, 5));
       });
     }, [user?.parkName])
   );
@@ -130,20 +131,11 @@ export default function DashboardScreen({ navigation }: Props) {
           {t('dashboard.viewAll')}
         </Text>
       </View>
-      {upcoming ? (
-        <TouchableOpacity style={styles.upcomingCard} activeOpacity={0.85} onPress={() => navigation.navigate('Programs')}>
-          <View style={styles.dateBadge}>
-            <Text style={styles.dateBadgeText}>{upcoming.date.split(' ')[0]}</Text>
-            <Text style={styles.dateBadgeMonth}>{upcoming.date.split(' ')[1]}</Text>
-          </View>
-          <View style={{ flex: 1 }}>
-            <Text style={typography.h3}>{upcoming.title}</Text>
-            <Text style={typography.caption} numberOfLines={2}>
-              {upcoming.description}
-            </Text>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-        </TouchableOpacity>
+      {upcoming.length > 0 ? (
+        <HighlightCarousel
+          programs={upcoming}
+          onPressItem={(program) => (navigation as any).navigate('ProgramDetail', { programId: program.id })}
+        />
       ) : (
         <View style={styles.upcomingCard}>
           <Text style={typography.caption}>{t('dashboard.noUpcoming')}</Text>
@@ -325,23 +317,6 @@ const makeStyles = (colors: ColorPalette) =>
       alignItems: 'center',
       gap: spacing.md,
       ...shadow.card,
-    },
-    dateBadge: {
-      width: 52,
-      height: 52,
-      borderRadius: radius.sm,
-      backgroundColor: colors.primaryLight,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    dateBadgeText: {
-      fontWeight: '700',
-      color: colors.primaryDark,
-      fontSize: 16,
-    },
-    dateBadgeMonth: {
-      fontSize: 11,
-      color: colors.primaryDark,
     },
     emergencyRow: {
       flexDirection: 'row',

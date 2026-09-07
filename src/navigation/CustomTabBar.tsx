@@ -76,7 +76,7 @@ export default function CustomTabBar({ state, navigation, insets }: BottomTabBar
                     activeOpacity={0.85}
                     onPress={() => setMoreOpen(true)}
                   >
-                    <Ionicons name="ellipsis-horizontal" size={22} color={colors.white} />
+                    <Ionicons name="add" size={26} color={colors.white} />
                   </TouchableOpacity>
                   <Text
                     style={[

@@ -10,6 +10,20 @@ export type Program = {
   createdBy?: string;
 };
 
+export const categoryColors: Record<Program['category'], string> = {
+  Sukan: '#2E6FD9',
+  'Gotong-Royong': '#1B7A43',
+  Perayaan: '#D9862E',
+  Kursus: '#B23B6B',
+};
+
+export const categoryIcons: Record<Program['category'], keyof typeof import('@expo/vector-icons').Ionicons.glyphMap> = {
+  Sukan: 'football-outline',
+  'Gotong-Royong': 'people-outline',
+  Perayaan: 'sparkles-outline',
+  Kursus: 'school-outline',
+};
+
 export const programs: Program[] = [
   {
     id: 'p1',

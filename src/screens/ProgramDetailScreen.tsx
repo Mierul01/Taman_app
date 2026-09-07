@@ -8,16 +8,9 @@ import { useThemeColors, useThemeTypography } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import ScreenHeader from '../components/ScreenHeader';
 import { getAllPrograms } from '../data/programsStore';
-import { Program } from '../data/mockData';
+import { Program, categoryColors as categoryColor } from '../data/mockData';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProgramDetail'>;
-
-const categoryColor: Record<Program['category'], string> = {
-  Sukan: '#2E6FD9',
-  'Gotong-Royong': '#1B7A43',
-  Perayaan: '#D9862E',
-  Kursus: '#B23B6B',
-};
 
 export default function ProgramDetailScreen({ route, navigation }: Props) {
   const colors = useThemeColors();
