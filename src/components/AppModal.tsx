@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { radius, spacing, ColorPalette } from '../theme/theme';
 import { useThemeColors } from '../context/ThemeContext';
@@ -16,16 +16,17 @@ export default function AppModal({
   const colors = useThemeColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
 
-  if (!visible) return null;
   return (
-    <View style={styles.overlay}>
-      <View style={styles.card}>
-        <TouchableOpacity style={styles.closeButton} onPress={onClose} hitSlop={10}>
-          <Ionicons name="close" size={18} color={colors.textMuted} />
-        </TouchableOpacity>
-        {children}
+    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+      <View style={styles.overlay}>
+        <View style={styles.card}>
+          <TouchableOpacity style={styles.closeButton} onPress={onClose} hitSlop={10}>
+            <Ionicons name="close" size={18} color={colors.textMuted} />
+          </TouchableOpacity>
+          {children}
+        </View>
       </View>
-    </View>
+    </Modal>
   );
 }
 
