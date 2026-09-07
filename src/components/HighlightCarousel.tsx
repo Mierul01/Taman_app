@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { radius, spacing, withAlpha, ColorPalette } from '../theme/theme';
 import { useThemeColors } from '../context/ThemeContext';
@@ -65,6 +65,7 @@ export default function HighlightCarousel({
       >
         {programs.map((program, idx) => {
           const color = categoryColors[program.category];
+          const hasPhoto = !!program.imageUri;
           return (
             <TouchableOpacity
               key={program.id}
@@ -75,12 +76,19 @@ export default function HighlightCarousel({
                 { backgroundColor: color, marginRight: idx === programs.length - 1 ? 0 : spacing.sm },
               ]}
             >
-              <Ionicons
-                name={categoryIcons[program.category]}
-                size={110}
-                color="rgba(255,255,255,0.14)"
-                style={styles.slideWatermark}
-              />
+              {hasPhoto ? (
+                <>
+                  <Image source={{ uri: program.imageUri }} style={styles.slidePhoto} />
+                  <View style={styles.slideScrim} />
+                </>
+              ) : (
+                <Ionicons
+                  name={categoryIcons[program.category]}
+                  size={110}
+                  color="rgba(255,255,255,0.14)"
+                  style={styles.slideWatermark}
+                />
+              )}
               <View style={styles.slideBadge}>
                 <Text style={styles.slideBadgeText}>{t(`category.${program.category}`)}</Text>
               </View>
@@ -129,6 +137,13 @@ const makeStyles = (colors: ColorPalette, slideWidth: number) =>
       position: 'absolute',
       right: -16,
       top: -16,
+    },
+    slidePhoto: {
+      ...StyleSheet.absoluteFill,
+    },
+    slideScrim: {
+      ...StyleSheet.absoluteFill,
+      backgroundColor: 'rgba(0,0,0,0.35)',
     },
     slideBadge: {
       position: 'absolute',

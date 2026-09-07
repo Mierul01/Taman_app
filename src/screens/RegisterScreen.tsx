@@ -13,7 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
-import { radius, spacing, ColorPalette } from '../theme/theme';
+import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme';
 import { useThemeColors, useThemeTypography } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import Button from '../components/Button';
@@ -92,11 +92,15 @@ export default function RegisterScreen({ navigation }: Props) {
       style={{ flex: 1, backgroundColor: colors.background }}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <ScrollView contentContainerStyle={styles.container} keyboardShouldPersistTaps="handled">
-        <Text style={typography.h1}>{t('register.title')}</Text>
-        <Text style={[typography.body, styles.subtitle]}>
-          {t('register.subtitle', { appName: t('common.appName') })}
-        </Text>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
+        <View style={styles.headerBlock}>
+          <Ionicons name="leaf" size={120} color="rgba(255,255,255,0.08)" style={styles.headerWatermark} />
+          <View style={styles.logoCircle}>
+            <Ionicons name="leaf" size={24} color={colors.primary} />
+          </View>
+          <Text style={styles.title}>{t('register.title')}</Text>
+          <Text style={styles.subtitle}>{t('register.subtitle', { appName: t('common.appName') })}</Text>
+        </View>
 
         <View style={styles.form}>
           <Field label={t('register.fullName')} icon="person-outline" value={name} onChangeText={setName} placeholder={t('register.fullNamePlaceholder')} />
@@ -212,7 +216,9 @@ function Field({
     <View style={style}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <View style={[styles.inputWrap, multiline && styles.inputWrapMultiline]}>
-        <Ionicons name={icon} size={18} color={colors.textMuted} style={multiline ? styles.multilineIcon : undefined} />
+        <View style={[styles.inputIconWrap, multiline && styles.multilineIcon]}>
+          <Ionicons name={icon} size={15} color={colors.primary} />
+        </View>
         <TextInput
           {...inputProps}
           secureTextEntry={secureTextEntry && !visible}
@@ -236,18 +242,46 @@ function Field({
 
 const makeStyles = (colors: ColorPalette) =>
   StyleSheet.create({
-    container: {
-      flexGrow: 1,
+    headerBlock: {
+      backgroundColor: colors.primary,
+      borderBottomLeftRadius: radius.lg * 1.4,
+      borderBottomRightRadius: radius.lg * 1.4,
+      overflow: 'hidden',
+      alignItems: 'center',
+      paddingTop: 56,
+      paddingBottom: spacing.lg,
       paddingHorizontal: spacing.lg,
-      paddingTop: 64,
-      paddingBottom: spacing.xl,
+    },
+    headerWatermark: {
+      position: 'absolute',
+      right: -20,
+      top: -20,
+    },
+    logoCircle: {
+      width: 54,
+      height: 54,
+      borderRadius: 27,
+      backgroundColor: colors.white,
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: spacing.sm,
+      ...shadow.card,
+    },
+    title: {
+      fontSize: 22,
+      fontWeight: '700',
+      color: colors.white,
     },
     subtitle: {
       marginTop: spacing.xs,
-      color: colors.textMuted,
+      fontSize: 13,
+      color: colors.primaryLight,
+      textAlign: 'center',
     },
     form: {
-      marginTop: spacing.sm,
+      paddingHorizontal: spacing.lg,
+      paddingTop: spacing.md,
+      paddingBottom: spacing.xl,
     },
     row: {
       flexDirection: 'row',
@@ -273,21 +307,29 @@ const makeStyles = (colors: ColorPalette) =>
       borderWidth: 1,
       borderColor: colors.border,
       borderRadius: radius.md,
-      paddingHorizontal: spacing.md,
-      height: 50,
+      paddingHorizontal: spacing.sm,
+      height: 54,
       gap: spacing.sm,
     },
     inputWrapMultiline: {
       alignItems: 'flex-start',
       height: undefined,
-      minHeight: 50,
+      minHeight: 54,
       paddingVertical: spacing.sm,
+    },
+    inputIconWrap: {
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      backgroundColor: withAlpha(colors.primary, 0.1),
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     multilineIcon: {
       marginTop: 2,
     },
     inputMultiline: {
-      minHeight: 30,
+      minHeight: 34,
       paddingTop: 0,
     },
     input: {

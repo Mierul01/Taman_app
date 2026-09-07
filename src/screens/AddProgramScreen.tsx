@@ -1,15 +1,17 @@
 import React, { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import type { Program } from '../data/mockData';
-import { radius, spacing, ColorPalette } from '../theme/theme';
+import { radius, spacing, withAlpha, ColorPalette } from '../theme/theme';
 import { useThemeColors } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import ScreenHeader from '../components/ScreenHeader';
 import Button from '../components/Button';
 import { addProgram } from '../data/programsStore';
 import { useAuth } from '../context/AuthContext';
+import { pickBannerImage } from '../utils/avatarPicker';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddProgram'>;
 
@@ -34,8 +36,24 @@ export default function AddProgramScreen({ navigation }: Props) {
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
   const [category, setCategory] = useState<Program['category']>('Gotong-Royong');
+  const [imageUri, setImageUri] = useState<string | undefined>(undefined);
+  const [pickingImage, setPickingImage] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  const handlePickImage = async () => {
+    setPickingImage(true);
+    try {
+      const result = await pickBannerImage();
+      if (result.status === 'success') {
+        setImageUri(result.uri);
+      } else if (result.status === 'permission-denied') {
+        Alert.alert('', t('profile.avatarPermissionDenied'));
+      }
+    } finally {
+      setPickingImage(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!title.trim() || !location.trim() || !description.trim()) {
@@ -54,6 +72,7 @@ export default function AddProgramScreen({ navigation }: Props) {
       category,
       parkName: user?.parkName,
       createdBy: user?.email,
+      ...(imageUri ? { imageUri } : {}),
     };
     await addProgram(program);
     setSaving(false);
@@ -64,6 +83,28 @@ export default function AddProgramScreen({ navigation }: Props) {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScreenHeader title={t('addProgram.title')} subtitle={t('addProgram.subtitle')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={{ padding: spacing.lg }}>
+        <Text style={styles.fieldLabel}>{t('addProgram.photo')}</Text>
+        <TouchableOpacity
+          style={styles.imagePicker}
+          activeOpacity={0.8}
+          onPress={handlePickImage}
+          disabled={pickingImage}
+        >
+          {imageUri ? (
+            <Image source={{ uri: imageUri }} style={styles.imagePreview} />
+          ) : (
+            <View style={styles.imagePlaceholder}>
+              <Ionicons name="image-outline" size={26} color={colors.primary} />
+              <Text style={styles.imagePlaceholderText}>{t('addProgram.addPhoto')}</Text>
+            </View>
+          )}
+          {imageUri && (
+            <View style={styles.imageChangeBadge}>
+              <Ionicons name="camera" size={14} color={colors.white} />
+            </View>
+          )}
+        </TouchableOpacity>
+
         <Text style={styles.fieldLabel}>{t('addProgram.programTitle')}</Text>
         <TextInput
           value={title}
@@ -125,6 +166,44 @@ export default function AddProgramScreen({ navigation }: Props) {
 
 const makeStyles = (colors: ColorPalette) =>
   StyleSheet.create({
+    imagePicker: {
+      height: 140,
+      borderRadius: radius.md,
+      overflow: 'hidden',
+    },
+    imagePreview: {
+      width: '100%',
+      height: '100%',
+    },
+    imagePlaceholder: {
+      flex: 1,
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      backgroundColor: withAlpha(colors.primary, 0.08),
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderStyle: 'dashed',
+      borderRadius: radius.md,
+    },
+    imagePlaceholderText: {
+      fontSize: 13,
+      fontWeight: '600',
+      color: colors.primary,
+    },
+    imageChangeBadge: {
+      position: 'absolute',
+      right: spacing.sm,
+      bottom: spacing.sm,
+      width: 30,
+      height: 30,
+      borderRadius: 15,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+      borderWidth: 2,
+      borderColor: colors.surface,
+    },
     fieldLabel: {
       fontSize: 13,
       fontWeight: '600',

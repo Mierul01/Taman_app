@@ -8,6 +8,7 @@ export type Program = {
   category: 'Sukan' | 'Gotong-Royong' | 'Perayaan' | 'Kursus';
   parkName?: string;
   createdBy?: string;
+  imageUri?: string;
 };
 
 export const categoryColors: Record<Program['category'], string> = {

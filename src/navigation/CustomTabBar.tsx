@@ -81,6 +81,7 @@ export default function CustomTabBar({ state, navigation, insets }: BottomTabBar
                   <Text
                     style={[
                       styles.tabLabel,
+                      styles.centerLabel,
                       { color: moreOpen || isOverflowFocused ? colors.primary : colors.textMuted },
                     ]}
                     numberOfLines={1}
@@ -164,6 +165,9 @@ const makeStyles = (colors: ColorPalette) =>
     },
     centerButtonActive: {
       backgroundColor: colors.primaryDark,
+    },
+    centerLabel: {
+      marginTop: 6,
     },
     modalRoot: {
       flex: 1,

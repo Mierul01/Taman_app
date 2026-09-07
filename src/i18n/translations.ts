@@ -120,6 +120,8 @@ export const translations = {
     addProgram: {
       title: 'Add Program',
       subtitle: 'Create a new activity for your park',
+      photo: 'Photo (optional)',
+      addPhoto: 'Add a photo',
       programTitle: 'Program Title',
       programTitlePlaceholder: 'e.g. Community Clean-Up Day',
       date: 'Date',
@@ -420,6 +422,8 @@ export const translations = {
     addProgram: {
       title: 'Tambah Program',
       subtitle: 'Cipta aktiviti baharu untuk taman anda',
+      photo: 'Foto (pilihan)',
+      addPhoto: 'Tambah foto',
       programTitle: 'Tajuk Program',
       programTitlePlaceholder: 'Contoh: Gotong-Royong Perdana',
       date: 'Tarikh',
