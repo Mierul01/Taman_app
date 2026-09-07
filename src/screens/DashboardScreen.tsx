@@ -10,7 +10,7 @@ import { useThemeColors, useThemeTypography } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { usePayments } from '../context/PaymentContext';
-import { Program, emergencyContacts, feeItems, charityItems, notifications, formatNotificationDate } from '../data/mockData';
+import { Program, emergencyContacts, feeItems, notifications, formatNotificationDate } from '../data/mockData';
 import { getAllPrograms } from '../data/programsStore';
 import HighlightCarousel from '../components/HighlightCarousel';
 import AppText from '../components/AppText';
@@ -27,11 +27,11 @@ export default function DashboardScreen({ navigation }: Props) {
   const { t, language } = useLanguage();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { user } = useAuth();
+  const { user, getParkUsers } = useAuth();
   const { getUserPaymentRecords } = usePayments();
   const [upcoming, setUpcoming] = useState<Program[]>([]);
   const [paidTotal, setPaidTotal] = useState(0);
-  const [contributedTotal, setContributedTotal] = useState(0);
+  const [residentCount, setResidentCount] = useState<number | null>(null);
   const emergencyPreview = emergencyContacts.slice(0, 2);
   const recentNotifications = notifications.slice(0, 2);
   const notifLocale = language === 'ms' ? 'ms-MY' : 'en-GB';
@@ -64,16 +64,9 @@ export default function DashboardScreen({ navigation }: Props) {
 
   useFocusEffect(
     useCallback(() => {
-      if (!user) return;
-      (async () => {
-        let contributed = 0;
-        for (const item of charityItems) {
-          const records = await getUserPaymentRecords(user.email, item.id);
-          contributed += records.reduce((sum, r) => sum + r.amount, 0);
-        }
-        setContributedTotal(contributed);
-      })();
-    }, [user?.email])
+      if (!user?.parkName) return;
+      getParkUsers(user.parkName).then((residents) => setResidentCount(residents.length));
+    }, [user?.parkName])
   );
 
   const feeRemaining = Math.max(0, totalFeeAmount - paidTotal);
@@ -165,27 +158,43 @@ export default function DashboardScreen({ navigation }: Props) {
         </View>
       </TouchableOpacity>
 
-      <TouchableOpacity
-        style={styles.charityCard}
-        activeOpacity={0.85}
-        onPress={() => navigation.navigate('Charity')}
-      >
-        <View style={styles.feeIconWrapAccent}>
-          <Ionicons name="heart" size={20} color={colors.white} />
-        </View>
-        <View style={{ flex: 1, marginLeft: spacing.md }}>
-          <AppText style={styles.feeTitle}>{t('dashboard.charityStatusTitle')}</AppText>
-          <AppText style={styles.feeSummary}>{t('charity.contributed', { amount: contributedTotal.toFixed(2) })}</AppText>
-        </View>
-        {!isDependent && (
-          <Button
-            label={t('charity.contributeNow')}
-            onPress={() => navigation.navigate('Charity')}
-            variant="secondary"
-            style={styles.feeButton}
-          />
-        )}
-      </TouchableOpacity>
+      <View style={styles.statsCard}>
+        <TouchableOpacity
+          style={styles.statTile}
+          activeOpacity={0.75}
+          onPress={() => navigation.navigate('Committee')}
+        >
+          <View style={[styles.statIconWrap, { backgroundColor: withAlpha('#2E6FD9', 0.12) }]}>
+            <Ionicons name="people" size={17} color="#2E6FD9" />
+          </View>
+          <AppText style={styles.statValue}>{residentCount ?? '—'}</AppText>
+          <AppText style={styles.statLabel}>{t('dashboard.statResidents')}</AppText>
+        </TouchableOpacity>
+        <View style={styles.statDivider} />
+        <TouchableOpacity
+          style={styles.statTile}
+          activeOpacity={0.75}
+          onPress={() => navigation.navigate('Programs')}
+        >
+          <View style={[styles.statIconWrap, { backgroundColor: withAlpha('#1B7A43', 0.12) }]}>
+            <Ionicons name="calendar" size={17} color="#1B7A43" />
+          </View>
+          <AppText style={styles.statValue}>{upcoming.length}</AppText>
+          <AppText style={styles.statLabel}>{t('dashboard.statPrograms')}</AppText>
+        </TouchableOpacity>
+        <View style={styles.statDivider} />
+        <TouchableOpacity
+          style={styles.statTile}
+          activeOpacity={0.75}
+          onPress={() => navigation.navigate('Profile')}
+        >
+          <View style={[styles.statIconWrap, { backgroundColor: withAlpha('#D9862E', 0.12) }]}>
+            <Ionicons name="home" size={17} color="#D9862E" />
+          </View>
+          <AppText style={styles.statValue}>{(user?.familyMembers?.length ?? 0) + 1}</AppText>
+          <AppText style={styles.statLabel}>{t('dashboard.statFamily')}</AppText>
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.sectionRow}>
         <AppText style={styles.sectionTitle}>{t('dashboard.upcomingPrograms')}</AppText>
@@ -396,23 +405,42 @@ const makeStyles = (colors: ColorPalette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
-    charityCard: {
+    statsCard: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'stretch',
       backgroundColor: colors.surface,
       marginHorizontal: spacing.lg,
       marginTop: spacing.sm,
       borderRadius: radius.md,
-      padding: spacing.md,
+      paddingVertical: spacing.md,
       ...shadow.card,
     },
-    feeIconWrapAccent: {
-      width: 42,
-      height: 42,
-      borderRadius: 21,
-      backgroundColor: colors.accent,
+    statTile: {
+      flex: 1,
+      alignItems: 'center',
+      gap: 2,
+    },
+    statIconWrap: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
       alignItems: 'center',
       justifyContent: 'center',
+      marginBottom: 4,
+    },
+    statValue: {
+      fontSize: 17,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    statLabel: {
+      fontSize: 11,
+      color: colors.textMuted,
+    },
+    statDivider: {
+      width: 1,
+      backgroundColor: colors.border,
+      marginVertical: 2,
     },
     feeTitle: {
       fontSize: 15,
