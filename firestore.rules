@@ -1,0 +1,53 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function myProfile() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdminOfPark(parkName) {
+      return isSignedIn() && myProfile().role == 'admin' && myProfile().parkName == parkName;
+    }
+
+    // One document per account, keyed by Firebase Auth uid.
+    match /users/{userId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.data.email == request.auth.token.email;
+      allow update: if isSignedIn()
+        && (request.auth.uid == userId || isAdminOfPark(resource.data.parkName));
+      allow delete: if isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Self-reported fee/charity payments. Never editable or deletable once
+    // recorded (this is an honor-system ledger, not a real payment gateway).
+    match /paymentRecords/{recordId} {
+      allow read: if isSignedIn()
+        && (resource.data.userEmail == request.auth.token.email
+            || myProfile().parkName == resource.data.parkName);
+      allow create: if isSignedIn() && request.resource.data.userEmail == request.auth.token.email;
+      allow update, delete: if false;
+    }
+
+    // Park programs/events. Anyone signed in can read and propose one;
+    // only that park's admin can edit or remove one afterwards.
+    match /programs/{programId} {
+      allow read: if isSignedIn();
+      allow create: if isSignedIn();
+      allow update, delete: if isSignedIn() && isAdminOfPark(resource.data.parkName);
+    }
+
+    // One bank-account-details doc per park (doc id = encodeURIComponent(parkName)).
+    match /bankAccounts/{parkId} {
+      allow read: if isSignedIn();
+      allow write: if isSignedIn() && myProfile().role in ['admin', 'treasurer', 'chairman'];
+    }
+  }
+}

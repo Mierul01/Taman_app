@@ -17,7 +17,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
   const colors = useThemeColors();
   const { t } = useLanguage();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { user, updateProfile, updateAvatar } = useAuth();
+  const { user, updateProfile, updateAvatar, changePassword } = useAuth();
   const [name, setName] = useState(user?.name ?? '');
   const [phone, setPhone] = useState(user?.phone ?? '');
   const [address, setAddress] = useState(user?.address ?? '');
@@ -25,6 +25,29 @@ export default function ProfileEditScreen({ navigation }: Props) {
   const [city, setCity] = useState(user?.city ?? '');
   const [saving, setSaving] = useState(false);
   const [changingAvatar, setChangingAvatar] = useState(false);
+
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [savingPassword, setSavingPassword] = useState(false);
+
+  const handleUpdatePassword = async () => {
+    if (newPassword.length < 6) {
+      setPasswordError(t('register.passwordTooShort'));
+      return;
+    }
+    if (newPassword !== confirmNewPassword) {
+      setPasswordError(t('register.passwordMismatch'));
+      return;
+    }
+    setPasswordError('');
+    setSavingPassword(true);
+    await changePassword(newPassword);
+    setSavingPassword(false);
+    setNewPassword('');
+    setConfirmNewPassword('');
+    Alert.alert('', t('profileEdit.passwordUpdated'));
+  };
 
   const handleChangeAvatar = async () => {
     setChangingAvatar(true);
@@ -120,6 +143,41 @@ export default function ProfileEditScreen({ navigation }: Props) {
         </View>
 
         <Button label={t('common.save')} onPress={handleSave} loading={saving} style={{ marginTop: spacing.lg }} />
+
+        <View style={styles.passwordSection}>
+          <Text style={styles.sectionTitle}>{t('profileEdit.changePasswordTitle')}</Text>
+
+          <Text style={styles.fieldLabel}>{t('profileEdit.newPassword')}</Text>
+          <TextInput
+            value={newPassword}
+            onChangeText={setNewPassword}
+            secureTextEntry
+            placeholder={t('profileEdit.newPasswordPlaceholder')}
+            style={styles.input}
+            placeholderTextColor={colors.textMuted}
+          />
+
+          <Text style={styles.fieldLabel}>{t('profileEdit.confirmNewPassword')}</Text>
+          <TextInput
+            value={confirmNewPassword}
+            onChangeText={setConfirmNewPassword}
+            secureTextEntry
+            placeholder={t('profileEdit.confirmNewPasswordPlaceholder')}
+            style={styles.input}
+            placeholderTextColor={colors.textMuted}
+          />
+
+          {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
+
+          <Button
+            label={t('profileEdit.updatePassword')}
+            variant="secondary"
+            onPress={handleUpdatePassword}
+            loading={savingPassword}
+            disabled={!newPassword || !confirmNewPassword}
+            style={{ marginTop: spacing.md }}
+          />
+        </View>
       </ScrollView>
     </View>
   );
@@ -193,5 +251,22 @@ const makeStyles = (colors: ColorPalette) =>
       fontSize: 12,
       color: colors.primaryDark,
       lineHeight: 17,
+    },
+    passwordSection: {
+      marginTop: spacing.xl,
+      paddingTop: spacing.lg,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    sectionTitle: {
+      fontSize: 16,
+      fontWeight: '700',
+      color: colors.text,
+      marginBottom: spacing.xs,
+    },
+    errorText: {
+      color: colors.danger,
+      fontSize: 12,
+      marginTop: spacing.sm,
     },
   });

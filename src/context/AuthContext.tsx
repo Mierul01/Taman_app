@@ -1,5 +1,25 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signInWithEmailAndPassword,
+  signOut,
+  updatePassword as firebaseUpdatePassword,
+  deleteUser,
+} from 'firebase/auth';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  getDoc,
+  getDocs,
+  limit,
+  query,
+  setDoc,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
+import { auth, db, getSecondaryAuth } from '../firebase/config';
 
 export type FamilyMember = {
   id: string;
@@ -38,6 +58,7 @@ type AuthContextType = {
   deleteAccount: () => Promise<void>;
   updateProfile: (updates: ProfileUpdate) => Promise<void>;
   updateAvatar: (avatarUri: string | undefined) => Promise<void>;
+  changePassword: (newPassword: string) => Promise<void>;
   addFamilyMember: (member: Omit<FamilyMember, 'linkedEmail'>) => Promise<void>;
   removeFamilyMember: (id: string) => Promise<void>;
   addFamilyMemberWithLogin: (
@@ -50,10 +71,7 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const USERS_KEY = '@tlamana_users';
-const SESSION_KEY = '@tlamana_session';
-
-type StoredUser = User & { password: string };
+const usersCol = collection(db, 'users');
 
 const SUPER_ADMIN_EMAILS = ['mamirulaimanz01@gmail.com'];
 
@@ -72,80 +90,88 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    (async () => {
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (!firebaseUser) {
+        setUser(null);
+        setIsLoading(false);
+        return;
+      }
       try {
-        const session = await AsyncStorage.getItem(SESSION_KEY);
-        if (session) setUser(normalize(JSON.parse(session)));
+        const snap = await getDoc(doc(db, 'users', firebaseUser.uid));
+        setUser(snap.exists() ? normalize(snap.data()) : null);
+      } catch {
+        setUser(null);
       } finally {
         setIsLoading(false);
       }
-    })();
+    });
+    return unsubscribe;
   }, []);
 
-  const getUsers = async (): Promise<StoredUser[]> => {
-    const raw = await AsyncStorage.getItem(USERS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  };
-
   const login = async (email: string, password: string) => {
-    const users = await getUsers();
-    const found = users.find(
-      (u) => u.email.toLowerCase() === email.trim().toLowerCase() && u.password === password
-    );
-    if (!found) {
+    try {
+      const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
+      const snap = await getDoc(doc(db, 'users', cred.user.uid));
+      if (!snap.exists()) {
+        return { success: false, messageKey: 'common.loginFailed' };
+      }
+      setUser(normalize(snap.data()));
+      return { success: true };
+    } catch {
       return { success: false, messageKey: 'common.loginFailed' };
     }
-    const { password: _pw, ...publicUser } = found;
-    const normalized = normalize(publicUser);
-    setUser(normalized);
-    await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(normalized));
-    return { success: true };
   };
 
   const register = async (data: Omit<User, 'familyMembers' | 'role'> & { password: string }) => {
-    const users = await getUsers();
-    const exists = users.some((u) => u.email.toLowerCase() === data.email.trim().toLowerCase());
-    if (exists) {
-      return { success: false, messageKey: 'common.emailTaken' };
+    try {
+      const emailTrimmed = data.email.trim();
+      const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(emailTrimmed.toLowerCase());
+
+      // Firestore rules require an authenticated request to read `users`, so
+      // the auth account must exist before this "am I the first person in
+      // this park" check can run.
+      const cred = await createUserWithEmailAndPassword(auth, emailTrimmed, data.password);
+      const parkSnap = await getDocs(query(usersCol, where('parkName', '==', data.parkName), limit(1)));
+      const isFirstInPark = parkSnap.empty;
+
+      const newUser: User = {
+        name: data.name,
+        email: emailTrimmed,
+        phone: data.phone,
+        address: data.address,
+        postcode: data.postcode,
+        city: data.city,
+        parkName: data.parkName,
+        familyMembers: [],
+        role: isFirstInPark || isSuperAdmin ? 'admin' : 'resident',
+      };
+      await setDoc(doc(db, 'users', cred.user.uid), newUser);
+      setUser(normalize(newUser));
+      return { success: true };
+    } catch (err: any) {
+      if (err?.code === 'auth/email-already-in-use') {
+        return { success: false, messageKey: 'common.emailTaken' };
+      }
+      return { success: false, messageKey: 'register.failed' };
     }
-    const isFirstInPark = !users.some((u) => u.parkName === data.parkName);
-    const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(data.email.trim().toLowerCase());
-    const newRecord: StoredUser = {
-      ...data,
-      familyMembers: [],
-      role: isFirstInPark || isSuperAdmin ? 'admin' : 'resident',
-    };
-    const newUsers = [...users, newRecord];
-    await AsyncStorage.setItem(USERS_KEY, JSON.stringify(newUsers));
-    const { password: _pw, ...publicUser } = newRecord;
-    setUser(publicUser);
-    await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(publicUser));
-    return { success: true };
   };
 
   const logout = async () => {
+    await signOut(auth);
     setUser(null);
-    await AsyncStorage.removeItem(SESSION_KEY);
   };
 
   const deleteAccount = async () => {
-    if (!user) return;
-    const users = await getUsers();
-    const remaining = users.filter((u) => u.email.toLowerCase() !== user.email.toLowerCase());
-    await AsyncStorage.setItem(USERS_KEY, JSON.stringify(remaining));
+    if (!auth.currentUser) return;
+    await deleteDoc(doc(db, 'users', auth.currentUser.uid));
+    await deleteUser(auth.currentUser);
     setUser(null);
-    await AsyncStorage.removeItem(SESSION_KEY);
   };
 
   const persistUser = async (updated: User) => {
+    if (!auth.currentUser) return;
     setUser(updated);
-    await AsyncStorage.setItem(SESSION_KEY, JSON.stringify(updated));
-    const users = await getUsers();
-    const idx = users.findIndex((u) => u.email.toLowerCase() === updated.email.toLowerCase());
-    if (idx !== -1) {
-      users[idx] = { ...users[idx], ...updated };
-      await AsyncStorage.setItem(USERS_KEY, JSON.stringify(users));
-    }
+    await updateDoc(doc(db, 'users', auth.currentUser.uid), { ...updated });
   };
 
   const updateProfile = async (updates: ProfileUpdate) => {
@@ -156,6 +182,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const updateAvatar = async (avatarUri: string | undefined) => {
     if (!user) return;
     await persistUser({ ...user, avatarUri });
+  };
+
+  const changePassword = async (newPassword: string) => {
+    if (!auth.currentUser) return;
+    await firebaseUpdatePassword(auth.currentUser, newPassword);
   };
 
   const addFamilyMember = async (member: Omit<FamilyMember, 'linkedEmail'>) => {
@@ -176,46 +207,48 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     login: { email: string; password: string }
   ) => {
     if (!user) return { success: false, messageKey: 'common.loginFailed' };
-    const users = await getUsers();
-    const exists = users.some((u) => u.email.toLowerCase() === login.email.trim().toLowerCase());
-    if (exists) {
-      return { success: false, messageKey: 'common.emailTaken' };
-    }
-    const dependentRecord: StoredUser = {
-      name: member.name,
-      email: login.email.trim(),
-      password: login.password,
-      phone: user.phone,
-      address: user.address,
-      postcode: user.postcode,
-      city: user.city,
-      parkName: user.parkName,
-      familyMembers: [],
-      role: 'resident',
-      dependentOf: user.email,
-    };
-    await AsyncStorage.setItem(USERS_KEY, JSON.stringify([...users, dependentRecord]));
+    try {
+      const secondaryAuth = getSecondaryAuth();
+      const emailTrimmed = login.email.trim();
+      const cred = await createUserWithEmailAndPassword(secondaryAuth, emailTrimmed, login.password);
 
-    const newMember: FamilyMember = { ...member, linkedEmail: dependentRecord.email };
-    await persistUser({ ...user, familyMembers: [...user.familyMembers, newMember] });
-    return { success: true };
+      const dependentProfile: User = {
+        name: member.name,
+        email: emailTrimmed,
+        phone: user.phone,
+        address: user.address,
+        postcode: user.postcode,
+        city: user.city,
+        parkName: user.parkName,
+        familyMembers: [],
+        role: 'resident',
+        dependentOf: user.email,
+      };
+      await setDoc(doc(db, 'users', cred.user.uid), dependentProfile);
+      await signOut(secondaryAuth);
+
+      const newMember: FamilyMember = { ...member, linkedEmail: dependentProfile.email };
+      await persistUser({ ...user, familyMembers: [...user.familyMembers, newMember] });
+      return { success: true };
+    } catch (err: any) {
+      if (err?.code === 'auth/email-already-in-use') {
+        return { success: false, messageKey: 'common.emailTaken' };
+      }
+      return { success: false, messageKey: 'profile.memberCreateFailed' };
+    }
   };
 
   const getParkUsers = async (parkName: string): Promise<User[]> => {
-    const users = await getUsers();
-    return users
-      .filter((u) => u.parkName === parkName)
-      .map(({ password: _pw, ...publicUser }) => normalize(publicUser));
+    const snap = await getDocs(query(usersCol, where('parkName', '==', parkName)));
+    return snap.docs.map((d) => normalize(d.data()));
   };
 
   const setUserRole = async (email: string, role: Role) => {
-    const users = await getUsers();
-    const idx = users.findIndex((u) => u.email.toLowerCase() === email.toLowerCase());
-    if (idx === -1) return;
-    users[idx] = { ...users[idx], role };
-    await AsyncStorage.setItem(USERS_KEY, JSON.stringify(users));
+    const snap = await getDocs(query(usersCol, where('email', '==', email), limit(1)));
+    if (snap.empty) return;
+    await updateDoc(snap.docs[0].ref, { role });
     if (user && user.email.toLowerCase() === email.toLowerCase()) {
-      await persistUser({ ...user, role });
+      setUser({ ...user, role });
     }
   };
 
@@ -229,6 +262,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       deleteAccount,
       updateProfile,
       updateAvatar,
+      changePassword,
       addFamilyMember,
       removeFamilyMember,
       addFamilyMemberWithLogin,

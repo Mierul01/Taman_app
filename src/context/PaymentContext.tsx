@@ -1,5 +1,15 @@
 import React, { createContext, useContext, useMemo } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  addDoc,
+  collection,
+  doc,
+  getDoc,
+  getDocs,
+  query,
+  setDoc,
+  where,
+} from 'firebase/firestore';
+import { db } from '../firebase/config';
 
 export type PaymentRecord = {
   id: string;
@@ -19,8 +29,8 @@ export type BankAccountInfo = {
   accountHolder: string;
 };
 
-const RECORDS_KEY = '@tlamana_payment_records';
-const BANK_ACCOUNTS_KEY = '@tlamana_bank_accounts';
+const recordsCol = collection(db, 'paymentRecords');
+const bankAccountsCol = collection(db, 'bankAccounts');
 
 type PaymentContextType = {
   addPaymentRecord: (record: Omit<PaymentRecord, 'id'>) => Promise<void>;
@@ -32,44 +42,35 @@ type PaymentContextType = {
 
 const PaymentContext = createContext<PaymentContextType | undefined>(undefined);
 
-export const PaymentProvider = ({ children }: { children: React.ReactNode }) => {
-  const getAllRecords = async (): Promise<PaymentRecord[]> => {
-    const raw = await AsyncStorage.getItem(RECORDS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  };
+function bankAccountDocId(parkName: string) {
+  // Firestore doc IDs can't contain "/", and park names are free text.
+  return encodeURIComponent(parkName);
+}
 
+export const PaymentProvider = ({ children }: { children: React.ReactNode }) => {
   const addPaymentRecord = async (record: Omit<PaymentRecord, 'id'>) => {
-    const records = await getAllRecords();
-    const newRecord: PaymentRecord = { ...record, id: `pay_${Date.now()}` };
-    await AsyncStorage.setItem(RECORDS_KEY, JSON.stringify([...records, newRecord]));
+    await addDoc(recordsCol, record);
   };
 
   const getUserPaymentRecords = async (userEmail: string, feeId: string) => {
-    const records = await getAllRecords();
-    return records.filter(
-      (r) => r.userEmail.toLowerCase() === userEmail.toLowerCase() && r.feeId === feeId
+    const snap = await getDocs(
+      query(recordsCol, where('userEmail', '==', userEmail), where('feeId', '==', feeId))
     );
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as PaymentRecord);
   };
 
   const getParkPaymentRecords = async (parkName: string) => {
-    const records = await getAllRecords();
-    return records.filter((r) => r.parkName === parkName);
-  };
-
-  const getAllBankAccounts = async (): Promise<Record<string, BankAccountInfo>> => {
-    const raw = await AsyncStorage.getItem(BANK_ACCOUNTS_KEY);
-    return raw ? JSON.parse(raw) : {};
+    const snap = await getDocs(query(recordsCol, where('parkName', '==', parkName)));
+    return snap.docs.map((d) => ({ id: d.id, ...d.data() }) as PaymentRecord);
   };
 
   const getBankAccount = async (parkName: string) => {
-    const accounts = await getAllBankAccounts();
-    return accounts[parkName] ?? null;
+    const snap = await getDoc(doc(bankAccountsCol, bankAccountDocId(parkName)));
+    return snap.exists() ? (snap.data() as BankAccountInfo) : null;
   };
 
   const setBankAccount = async (parkName: string, info: BankAccountInfo) => {
-    const accounts = await getAllBankAccounts();
-    accounts[parkName] = info;
-    await AsyncStorage.setItem(BANK_ACCOUNTS_KEY, JSON.stringify(accounts));
+    await setDoc(doc(bankAccountsCol, bankAccountDocId(parkName)), info);
   };
 
   const value = useMemo(

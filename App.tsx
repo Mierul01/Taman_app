@@ -9,6 +9,7 @@ import { PaymentProvider } from './src/context/PaymentContext';
 import { ThemeProvider, useAppTheme, useThemeColors } from './src/context/ThemeContext';
 import { LanguageProvider } from './src/context/LanguageContext';
 import RootNavigator from './src/navigation/RootNavigator';
+import UpdateBanner from './src/components/UpdateBanner';
 
 function useHideNativePasswordReveal() {
   useEffect(() => {
@@ -45,6 +46,7 @@ function AppShell() {
     <NavigationContainer theme={navTheme}>
       <StatusBar style={isDarkMode ? 'light' : 'dark'} />
       <RootNavigator />
+      <UpdateBanner />
     </NavigationContainer>
   );
 }

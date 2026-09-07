@@ -1,16 +1,16 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { addDoc, collection, getDocs } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import { programs as seedPrograms, Program } from './mockData';
 
-const CUSTOM_PROGRAMS_KEY = '@tlamana_custom_programs';
+const programsCol = collection(db, 'programs');
 
 export async function getAllPrograms(): Promise<Program[]> {
-  const raw = await AsyncStorage.getItem(CUSTOM_PROGRAMS_KEY);
-  const custom: Program[] = raw ? JSON.parse(raw) : [];
+  const snap = await getDocs(programsCol);
+  const custom = snap.docs.map((d) => ({ id: d.id, ...d.data() }) as Program);
   return [...seedPrograms, ...custom];
 }
 
 export async function addProgram(program: Program): Promise<void> {
-  const raw = await AsyncStorage.getItem(CUSTOM_PROGRAMS_KEY);
-  const custom: Program[] = raw ? JSON.parse(raw) : [];
-  await AsyncStorage.setItem(CUSTOM_PROGRAMS_KEY, JSON.stringify([...custom, program]));
+  const { id: _id, ...rest } = program;
+  await addDoc(programsCol, rest);
 }

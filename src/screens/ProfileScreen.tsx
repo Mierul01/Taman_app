@@ -91,15 +91,43 @@ export default function ProfileScreen() {
   };
 
   const infoRows = [
-    { icon: 'mail-outline' as const, label: t('common.email'), value: user?.email },
-    { icon: 'call-outline' as const, label: t('common.phone'), value: user?.phone },
-    { icon: 'business-outline' as const, label: t('profile.park'), value: user?.parkName },
-    { icon: 'home-outline' as const, label: t('common.address'), value: user?.address },
+    { icon: 'mail-outline' as const, label: t('common.email'), value: user?.email || '-' },
+    { icon: 'call-outline' as const, label: t('common.phone'), value: user?.phone || '-' },
+    { icon: 'business-outline' as const, label: t('profile.park'), value: user?.parkName || '-' },
+    { icon: 'home-outline' as const, label: t('common.address'), value: user?.address || '-' },
     {
       icon: 'location-outline' as const,
       label: t('profile.postcodeCity'),
-      value: user ? `${user.postcode} ${user.city}` : '',
+      value: [user?.postcode, user?.city].filter(Boolean).join(' ') || '-',
     },
+  ];
+
+  const actionRows = [
+    {
+      key: 'update',
+      icon: 'pencil' as const,
+      label: t('profile.updateProfile'),
+      onPress: () => navigation.navigate('ProfileEdit'),
+      highlight: false,
+    },
+    {
+      key: 'settings',
+      icon: 'settings-outline' as const,
+      label: t('profile.settings'),
+      onPress: () => navigation.navigate('Settings'),
+      highlight: false,
+    },
+    ...(user?.role === 'admin'
+      ? [
+          {
+            key: 'admin',
+            icon: 'shield-checkmark-outline' as const,
+            label: t('profile.adminPanel'),
+            onPress: () => navigation.navigate('AdminPanel'),
+            highlight: true,
+          },
+        ]
+      : []),
   ];
 
   return (
@@ -118,11 +146,11 @@ export default function ProfileScreen() {
               <Image source={{ uri: user.avatarUri }} style={styles.avatar} />
             ) : (
               <View style={styles.avatar}>
-                <Ionicons name="person" size={32} color={colors.white} />
+                <Ionicons name="person" size={46} color={colors.white} />
               </View>
             )}
             <View style={styles.avatarBadge}>
-              <Ionicons name="camera" size={13} color={colors.white} />
+              <Ionicons name="camera" size={16} color={colors.white} />
             </View>
           </TouchableOpacity>
           <Text style={styles.changePhotoText} onPress={handleChangeAvatar}>
@@ -134,31 +162,28 @@ export default function ProfileScreen() {
           <View style={styles.roleBadge}>
             <Text style={styles.roleBadgeText}>{t(`role.${user?.role ?? 'resident'}`)}</Text>
           </View>
-          <View style={styles.quickActions}>
-            <TouchableOpacity style={styles.editButton} activeOpacity={0.8} onPress={() => navigation.navigate('ProfileEdit')}>
-              <Ionicons name="pencil" size={14} color={colors.primary} />
-              <Text style={styles.editButtonText}>{t('profile.updateProfile')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.editButton} activeOpacity={0.8} onPress={() => navigation.navigate('Settings')}>
-              <Ionicons name="settings-outline" size={14} color={colors.primary} />
-              <Text style={styles.editButtonText}>{t('profile.settings')}</Text>
-            </TouchableOpacity>
-          </View>
-          {user?.role === 'admin' && (
+        </View>
+
+        <View style={styles.sectionCard}>
+          {actionRows.map((row, idx) => (
             <TouchableOpacity
-              style={[styles.editButton, styles.adminButton]}
-              activeOpacity={0.8}
-              onPress={() => navigation.navigate('AdminPanel')}
+              key={row.key}
+              style={[styles.actionRow, idx !== actionRows.length - 1 && styles.rowDivider]}
+              activeOpacity={0.75}
+              onPress={row.onPress}
             >
-              <Ionicons name="shield-checkmark-outline" size={14} color={colors.white} />
-              <Text style={[styles.editButtonText, { color: colors.white }]}>{t('profile.adminPanel')}</Text>
+              <View style={[styles.actionIconWrap, row.highlight && styles.actionIconWrapHighlight]}>
+                <Ionicons name={row.icon} size={18} color={row.highlight ? colors.white : colors.primary} />
+              </View>
+              <Text style={[styles.actionLabel, row.highlight && styles.actionLabelHighlight]}>{row.label}</Text>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
             </TouchableOpacity>
-          )}
+          ))}
         </View>
 
         <View style={styles.infoCard}>
           {infoRows.map((row, idx) => (
-            <View key={row.label} style={[styles.infoRow, idx !== infoRows.length - 1 && styles.infoRowBorder]}>
+            <View key={row.label} style={[styles.infoRow, idx !== infoRows.length - 1 && styles.rowDivider]}>
               <Ionicons name={row.icon} size={18} color={colors.textMuted} />
               <View style={{ marginLeft: spacing.md, flex: 1 }}>
                 <Text style={typography.caption}>{row.label}</Text>
@@ -170,26 +195,30 @@ export default function ProfileScreen() {
 
         <View style={styles.sectionRow}>
           <Text style={styles.sectionTitle}>{t('profile.familyMembers')}</Text>
-          <Text style={styles.linkText} onPress={openAddFamily}>
-            {t('profile.addMember')}
-          </Text>
         </View>
         <Text style={styles.sectionSubtitle}>{t('profile.familyHint')}</Text>
 
-        {!user?.familyMembers?.length ? (
-          <View style={styles.emptyFamily}>
-            <Ionicons name="people-outline" size={26} color={colors.textMuted} />
-            <Text style={styles.emptyFamilyText}>{t('profile.noFamily')}</Text>
-          </View>
-        ) : (
-          <View style={{ paddingHorizontal: spacing.lg, gap: spacing.sm }}>
-            {user.familyMembers.map((member) => (
-              <View key={member.id} style={styles.familyCard}>
+        <View style={styles.sectionCard}>
+          {!user?.familyMembers?.length ? (
+            <View style={styles.emptyFamily}>
+              <View style={styles.emptyFamilyIconWrap}>
+                <Ionicons name="people-outline" size={24} color={colors.primary} />
+              </View>
+              <Text style={styles.emptyFamilyText}>{t('profile.noFamily')}</Text>
+            </View>
+          ) : (
+            user.familyMembers.map((member, idx) => (
+              <View
+                key={member.id}
+                style={[styles.familyRow, idx !== user.familyMembers.length - 1 && styles.rowDivider]}
+              >
                 <View style={styles.familyAvatar}>
                   <Ionicons name="person" size={18} color={colors.primary} />
                 </View>
                 <View style={{ flex: 1, marginLeft: spacing.md }}>
-                  <Text style={typography.h3}>{member.name}</Text>
+                  <Text style={typography.h3} numberOfLines={1}>
+                    {member.name}
+                  </Text>
                   <View style={styles.familyMetaRow}>
                     <View style={styles.relationshipBadge}>
                       <Text style={styles.relationshipBadgeText}>
@@ -212,9 +241,15 @@ export default function ProfileScreen() {
                   <Ionicons name="trash-outline" size={17} color={colors.danger} />
                 </TouchableOpacity>
               </View>
-            ))}
-          </View>
-        )}
+            ))
+          )}
+          <TouchableOpacity style={styles.addMemberRow} activeOpacity={0.75} onPress={openAddFamily}>
+            <View style={styles.addMemberIconWrap}>
+              <Ionicons name="add" size={18} color={colors.primary} />
+            </View>
+            <Text style={styles.addMemberLabel}>{t('profile.addMember')}</Text>
+          </TouchableOpacity>
+        </View>
 
         <View style={styles.actions}>
           <Button label={t('profile.logOut')} variant="ghost" onPress={() => setConfirmLogout(true)} />
@@ -333,13 +368,13 @@ const makeStyles = (colors: ColorPalette) =>
       paddingHorizontal: spacing.lg,
     },
     avatarWrap: {
-      width: 76,
-      height: 76,
+      width: 108,
+      height: 108,
     },
     avatar: {
-      width: 76,
-      height: 76,
-      borderRadius: 38,
+      width: 108,
+      height: 108,
+      borderRadius: 54,
       backgroundColor: colors.primary,
       alignItems: 'center',
       justifyContent: 'center',
@@ -348,9 +383,9 @@ const makeStyles = (colors: ColorPalette) =>
       position: 'absolute',
       right: -2,
       bottom: -2,
-      width: 26,
-      height: 26,
-      borderRadius: 13,
+      width: 32,
+      height: 32,
+      borderRadius: 16,
       backgroundColor: colors.primary,
       borderWidth: 2,
       borderColor: colors.surface,
@@ -380,32 +415,44 @@ const makeStyles = (colors: ColorPalette) =>
       fontWeight: '700',
       color: colors.primaryDark,
     },
-    quickActions: {
-      flexDirection: 'row',
-      gap: spacing.sm,
+    sectionCard: {
+      backgroundColor: colors.surface,
+      marginHorizontal: spacing.lg,
       marginTop: spacing.md,
+      borderRadius: radius.md,
+      paddingHorizontal: spacing.md,
+      ...shadow.card,
     },
-    editButton: {
+    actionRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
-      paddingHorizontal: spacing.md,
-      paddingVertical: 8,
-      borderRadius: radius.full,
+      paddingVertical: spacing.md,
+      gap: spacing.md,
+    },
+    actionIconWrap: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
       backgroundColor: withAlpha(colors.primary, 0.1),
+      alignItems: 'center',
+      justifyContent: 'center',
     },
-    adminButton: {
+    actionIconWrapHighlight: {
       backgroundColor: colors.primary,
-      marginTop: spacing.sm,
     },
-    editButtonText: {
+    actionLabel: {
+      flex: 1,
+      fontSize: 14,
+      fontWeight: '600',
+      color: colors.text,
+    },
+    actionLabelHighlight: {
       color: colors.primary,
-      fontWeight: '700',
-      fontSize: 13,
     },
     infoCard: {
       backgroundColor: colors.surface,
       marginHorizontal: spacing.lg,
+      marginTop: spacing.md,
       borderRadius: radius.md,
       padding: spacing.md,
       ...shadow.card,
@@ -415,7 +462,7 @@ const makeStyles = (colors: ColorPalette) =>
       alignItems: 'center',
       paddingVertical: spacing.sm,
     },
-    infoRowBorder: {
+    rowDivider: {
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
@@ -438,28 +485,50 @@ const makeStyles = (colors: ColorPalette) =>
       marginTop: 2,
       marginBottom: spacing.sm,
     },
-    linkText: {
-      color: colors.primary,
-      fontWeight: '700',
-      fontSize: 13,
-    },
     emptyFamily: {
       alignItems: 'center',
       justifyContent: 'center',
       paddingVertical: spacing.lg,
       gap: spacing.xs,
     },
+    emptyFamilyIconWrap: {
+      width: 48,
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: withAlpha(colors.primary, 0.1),
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginBottom: spacing.xs,
+    },
     emptyFamilyText: {
       color: colors.textMuted,
       fontSize: 13,
     },
-    familyCard: {
+    familyRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.surface,
-      borderRadius: radius.md,
-      padding: spacing.md,
-      ...shadow.card,
+      paddingVertical: spacing.md,
+    },
+    addMemberRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.md,
+      paddingVertical: spacing.md,
+    },
+    addMemberIconWrap: {
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      borderWidth: 1.5,
+      borderColor: colors.primary,
+      borderStyle: 'dashed',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    addMemberLabel: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.primary,
     },
     familyAvatar: {
       width: 40,
