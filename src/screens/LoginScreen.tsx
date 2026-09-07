@@ -60,6 +60,7 @@ export default function LoginScreen({ navigation }: Props) {
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View style={styles.card}>
+          <View style={styles.cardHandle} />
           <ScrollView contentContainerStyle={styles.cardContent} keyboardShouldPersistTaps="handled">
             <Text style={styles.title}>{t('login.title')}</Text>
             <Text style={styles.subtitle}>{t('login.subtitle', { appName: t('common.appName') })}</Text>
@@ -108,7 +109,12 @@ export default function LoginScreen({ navigation }: Props) {
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
-            <Button label={t('login.submit')} onPress={handleLogin} loading={loading} style={{ marginTop: spacing.lg }} />
+            <Button
+              label={t('login.submit')}
+              onPress={handleLogin}
+              loading={loading}
+              style={styles.submitButton}
+            />
 
             <View style={styles.footerRow}>
               <Text style={styles.footerText}>{t('login.noAccount')}</Text>
@@ -144,13 +150,19 @@ const makeStyles = (colors: ColorPalette) =>
       alignSelf: 'center',
       marginTop: 64,
       marginBottom: spacing.md,
-      width: 64,
-      height: 64,
-      borderRadius: 32,
+      width: 68,
+      height: 68,
+      borderRadius: 34,
       backgroundColor: colors.white,
       alignItems: 'center',
       justifyContent: 'center',
-      ...shadow.card,
+      borderWidth: 3,
+      borderColor: withAlpha(colors.white, 0.35),
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.18,
+      shadowRadius: 14,
+      elevation: 6,
     },
     cardWrap: {
       flex: 1,
@@ -158,21 +170,30 @@ const makeStyles = (colors: ColorPalette) =>
     card: {
       flex: 1,
       backgroundColor: colors.surface,
-      borderTopLeftRadius: radius.lg * 1.4,
-      borderTopRightRadius: radius.lg * 1.4,
+      borderTopLeftRadius: radius.lg * 1.7,
+      borderTopRightRadius: radius.lg * 1.7,
       marginHorizontal: spacing.md,
       marginBottom: 0,
       ...shadow.card,
       overflow: 'hidden',
     },
+    cardHandle: {
+      alignSelf: 'center',
+      width: 40,
+      height: 4,
+      borderRadius: radius.full,
+      backgroundColor: colors.border,
+      marginTop: spacing.sm,
+    },
     cardContent: {
       padding: spacing.lg,
-      paddingTop: spacing.xl,
+      paddingTop: spacing.md,
       flexGrow: 1,
     },
     title: {
-      fontSize: 24,
-      fontWeight: '700',
+      fontSize: 25,
+      fontWeight: '800',
+      letterSpacing: 0.2,
       color: colors.text,
       textAlign: 'center',
     },
@@ -181,7 +202,7 @@ const makeStyles = (colors: ColorPalette) =>
       fontSize: 13,
       color: colors.textMuted,
       textAlign: 'center',
-      marginBottom: spacing.md,
+      marginBottom: spacing.lg,
     },
     fieldLabel: {
       fontSize: 13,
@@ -195,17 +216,17 @@ const makeStyles = (colors: ColorPalette) =>
       alignItems: 'center',
       backgroundColor: colors.background,
       borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: radius.md,
+      borderColor: colors.background,
+      borderRadius: radius.lg,
       paddingHorizontal: spacing.sm,
-      height: 54,
+      height: 56,
       gap: spacing.sm,
     },
     inputIconWrap: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
-      backgroundColor: withAlpha(colors.primary, 0.1),
+      width: 34,
+      height: 34,
+      borderRadius: 17,
+      backgroundColor: withAlpha(colors.primary, 0.12),
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -218,12 +239,22 @@ const makeStyles = (colors: ColorPalette) =>
       flexDirection: 'row',
       alignItems: 'center',
       gap: spacing.xs,
-      marginTop: spacing.md,
+      marginTop: spacing.lg,
     },
     rememberText: {
       fontSize: 13,
       color: colors.text,
       fontWeight: '600',
+    },
+    submitButton: {
+      marginTop: spacing.xl,
+      borderRadius: radius.full,
+      paddingVertical: 16,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.28,
+      shadowRadius: 12,
+      elevation: 4,
     },
     error: {
       color: colors.danger,

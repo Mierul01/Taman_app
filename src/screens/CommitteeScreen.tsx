@@ -9,6 +9,7 @@ import ScreenHeader from '../components/ScreenHeader';
 import AppModal from '../components/AppModal';
 import { emergencyContacts } from '../data/mockData';
 import { useAuth, User } from '../context/AuthContext';
+import { toTitleCase } from '../utils/formatName';
 
 type ListEntry =
   | { kind: 'member'; id: string; name: string; roleLabel: string; phone: string }
@@ -40,7 +41,7 @@ export default function CommitteeScreen() {
       title: t('committee.committeeSection'),
       isCommittee: true,
       data: committee.map(
-        (m): ListEntry => ({ kind: 'member', id: m.email, name: m.name, roleLabel: t(`role.${m.role}`), phone: m.phone })
+        (m): ListEntry => ({ kind: 'member', id: m.email, name: toTitleCase(m.name), roleLabel: t(`role.${m.role}`), phone: m.phone })
       ),
     },
     {

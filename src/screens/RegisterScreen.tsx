@@ -94,6 +94,7 @@ export default function RegisterScreen({ navigation }: Props) {
 
       <KeyboardAvoidingView style={styles.cardWrap} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <View style={styles.card}>
+          <View style={styles.cardHandle} />
           <ScrollView contentContainerStyle={styles.cardContent} keyboardShouldPersistTaps="handled">
             <Text style={styles.title}>{t('register.title')}</Text>
             <Text style={styles.subtitle}>
@@ -156,7 +157,12 @@ export default function RegisterScreen({ navigation }: Props) {
 
             {error ? <Text style={styles.error}>{error}</Text> : null}
 
-            <Button label={t('register.submit')} onPress={handleRegister} loading={loading} style={{ marginTop: spacing.md }} />
+            <Button
+              label={t('register.submit')}
+              onPress={handleRegister}
+              loading={loading}
+              style={styles.submitButton}
+            />
 
             <View style={styles.footerRow}>
               <Text style={styles.footerText}>{t('register.haveAccount')}</Text>
@@ -238,13 +244,19 @@ const makeStyles = (colors: ColorPalette) =>
       alignSelf: 'center',
       marginTop: 48,
       marginBottom: spacing.sm,
-      width: 52,
-      height: 52,
-      borderRadius: 26,
+      width: 56,
+      height: 56,
+      borderRadius: 28,
       backgroundColor: colors.white,
       alignItems: 'center',
       justifyContent: 'center',
-      ...shadow.card,
+      borderWidth: 3,
+      borderColor: withAlpha(colors.white, 0.35),
+      shadowColor: '#000',
+      shadowOffset: { width: 0, height: 6 },
+      shadowOpacity: 0.18,
+      shadowRadius: 14,
+      elevation: 6,
     },
     cardWrap: {
       flex: 1,
@@ -252,20 +264,29 @@ const makeStyles = (colors: ColorPalette) =>
     card: {
       flex: 1,
       backgroundColor: colors.surface,
-      borderTopLeftRadius: radius.lg * 1.4,
-      borderTopRightRadius: radius.lg * 1.4,
+      borderTopLeftRadius: radius.lg * 1.7,
+      borderTopRightRadius: radius.lg * 1.7,
       marginHorizontal: spacing.md,
       ...shadow.card,
       overflow: 'hidden',
     },
+    cardHandle: {
+      alignSelf: 'center',
+      width: 40,
+      height: 4,
+      borderRadius: radius.full,
+      backgroundColor: colors.border,
+      marginTop: spacing.sm,
+    },
     cardContent: {
       padding: spacing.lg,
-      paddingTop: spacing.lg,
+      paddingTop: spacing.md,
       flexGrow: 1,
     },
     title: {
-      fontSize: 21,
-      fontWeight: '700',
+      fontSize: 22,
+      fontWeight: '800',
+      letterSpacing: 0.2,
       color: colors.text,
       textAlign: 'center',
     },
@@ -298,23 +319,23 @@ const makeStyles = (colors: ColorPalette) =>
       alignItems: 'center',
       backgroundColor: colors.background,
       borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: radius.md,
+      borderColor: colors.background,
+      borderRadius: radius.lg,
       paddingHorizontal: spacing.sm,
-      height: 54,
+      height: 56,
       gap: spacing.sm,
     },
     inputWrapMultiline: {
       alignItems: 'flex-start',
       height: undefined,
-      minHeight: 54,
+      minHeight: 56,
       paddingVertical: spacing.sm,
     },
     inputIconWrap: {
-      width: 30,
-      height: 30,
-      borderRadius: 15,
-      backgroundColor: withAlpha(colors.primary, 0.1),
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: withAlpha(colors.primary, 0.12),
       alignItems: 'center',
       justifyContent: 'center',
     },
@@ -345,6 +366,16 @@ const makeStyles = (colors: ColorPalette) =>
     pdpaLink: {
       color: colors.primary,
       fontWeight: '700',
+    },
+    submitButton: {
+      marginTop: spacing.lg,
+      borderRadius: radius.full,
+      paddingVertical: 16,
+      shadowColor: colors.primary,
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.28,
+      shadowRadius: 12,
+      elevation: 4,
     },
     error: {
       color: colors.danger,
