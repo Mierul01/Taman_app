@@ -64,6 +64,7 @@ const makeStyles = (colors: ColorPalette) =>
       fontSize: 13,
       lineHeight: 19,
       color: colors.text,
+      textAlign: 'justify',
     },
     section: {
       marginBottom: spacing.lg,
@@ -78,5 +79,6 @@ const makeStyles = (colors: ColorPalette) =>
       fontSize: 13,
       lineHeight: 20,
       color: colors.textMuted,
+      textAlign: 'justify',
     },
   });
