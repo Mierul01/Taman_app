@@ -74,11 +74,13 @@ type AuthContextType = {
   ) => Promise<{ success: boolean; messageKey?: string }>;
   getParkUsers: (parkName: string) => Promise<User[]>;
   setUserRole: (email: string, role: Role) => Promise<void>;
+  getParkNames: () => Promise<string[]>;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const usersCol = collection(db, 'users');
+const parksCol = collection(db, 'parks');
 
 const SUPER_ADMIN_EMAILS = ['mamirulaimanz01@gmail.com'];
 
@@ -162,6 +164,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         role: isFirstInPark || isSuperAdmin ? 'admin' : 'resident',
       };
       await setDoc(doc(db, 'users', cred.user.uid), newUser);
+      if (isFirstInPark) {
+        await setDoc(doc(db, 'parks', encodeURIComponent(data.parkName)), { name: data.parkName });
+      }
       setUser(normalize(newUser));
       return { success: true };
     } catch (err: any) {
@@ -272,6 +277,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const getParkNames = async (): Promise<string[]> => {
+    const snap = await getDocs(parksCol);
+    return snap.docs.map((d) => d.data().name as string).sort();
+  };
+
   const value = useMemo(
     () => ({
       user,
@@ -288,6 +298,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       addFamilyMemberWithLogin,
       getParkUsers,
       setUserRole,
+      getParkNames,
     }),
     [user, isLoading]
   );

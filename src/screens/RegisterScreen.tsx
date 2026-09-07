@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -20,10 +20,12 @@ export default function RegisterScreen({ navigation }: Props) {
   const colors = useThemeColors();
   const { t } = useLanguage();
   const styles = useMemo(() => makeStyles(colors), [colors]);
-  const { register } = useAuth();
+  const { register, getParkNames } = useAuth();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
+  const [existingParks, setExistingParks] = useState<string[]>([]);
+  const [parkSelection, setParkSelection] = useState('');
   const [parkName, setParkName] = useState('');
   const [address, setAddress] = useState('');
   const [postcode, setPostcode] = useState('');
@@ -35,6 +37,14 @@ export default function RegisterScreen({ navigation }: Props) {
   const [pdpaConsent, setPdpaConsent] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    getParkNames().then(setExistingParks).catch(() => {});
+  }, []);
+
+  const OTHER_PARK_OPTION = t('register.parkOtherOption');
+  const parkOptions = [...existingParks, OTHER_PARK_OPTION];
+  const isNewPark = parkSelection === OTHER_PARK_OPTION;
 
   const handleRegister = async () => {
     setError('');
@@ -104,13 +114,26 @@ export default function RegisterScreen({ navigation }: Props) {
             <Field label={t('register.fullName')} icon="person-outline" value={name} onChangeText={setName} placeholder={t('register.fullNamePlaceholder')} />
             <Field label={t('common.email')} icon="mail-outline" value={email} onChangeText={setEmail} placeholder={t('register.emailPlaceholder')} keyboardType="email-address" autoCapitalize="none" />
             <Field label={t('common.phone')} icon="call-outline" value={phone} onChangeText={setPhone} placeholder={t('register.phonePlaceholder')} keyboardType="phone-pad" />
-            <Field
+            <SelectField
               label={t('register.parkName')}
               icon="business-outline"
-              value={parkName}
-              onChangeText={setParkName}
+              value={parkSelection}
+              options={parkOptions}
               placeholder={t('register.parkNamePlaceholder')}
+              onSelect={(value) => {
+                setParkSelection(value);
+                setParkName(value === OTHER_PARK_OPTION ? '' : value);
+              }}
             />
+            {isNewPark && (
+              <Field
+                label={t('register.newParkName')}
+                icon="add-circle-outline"
+                value={parkName}
+                onChangeText={setParkName}
+                placeholder={t('register.parkNamePlaceholder')}
+              />
+            )}
             <AppText style={styles.parkHint}>{t('register.parkHint')}</AppText>
             <Field
               label={t('common.address')}

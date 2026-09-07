@@ -49,5 +49,14 @@ service cloud.firestore {
       allow read: if isSignedIn();
       allow write: if isSignedIn() && myProfile().role in ['admin', 'treasurer', 'chairman'];
     }
+
+    // Public directory of registered park names (doc id = encodeURIComponent(parkName)),
+    // holding only the name itself. Read publicly so the Register screen can offer
+    // existing parks in a dropdown before the visitor has an account; writes require
+    // auth since a park is only added once someone actually registers into it.
+    match /parks/{parkId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
   }
 }
