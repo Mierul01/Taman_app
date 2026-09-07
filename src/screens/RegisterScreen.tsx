@@ -1,15 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-  ViewStyle,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -20,10 +10,9 @@ import Button from '../components/Button';
 import SelectField from '../components/SelectField';
 import { useAuth } from '../context/AuthContext';
 import PasswordStrengthChecklist, { PasswordMatchIndicator } from '../components/PasswordStrengthChecklist';
-import { SELANGOR_DISTRICTS, SelangorDistrict } from '../data/selangorLocations';
-import { buildMalaysiaCityList } from '../data/malaysiaLocations';
-
-const MALAYSIA_CITY_OPTIONS = buildMalaysiaCityList();
+import { SELANGOR_CITIES, SELANGOR_DISTRICTS, SelangorDistrict } from '../data/selangorLocations';
+import { MALAYSIA_STATE_OPTIONS } from '../data/malaysiaLocations';
+import AppText from '../components/AppText';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
@@ -38,6 +27,7 @@ export default function RegisterScreen({ navigation }: Props) {
   const [parkName, setParkName] = useState('');
   const [address, setAddress] = useState('');
   const [postcode, setPostcode] = useState('');
+  const [state, setState] = useState('Selangor');
   const [district, setDistrict] = useState<SelangorDistrict | ''>('');
   const [city, setCity] = useState('');
   const [password, setPassword] = useState('');
@@ -55,6 +45,7 @@ export default function RegisterScreen({ navigation }: Props) {
       !parkName.trim() ||
       !address.trim() ||
       !postcode.trim() ||
+      !state ||
       !district ||
       !city.trim() ||
       !password
@@ -82,6 +73,7 @@ export default function RegisterScreen({ navigation }: Props) {
       parkName: parkName.trim(),
       address,
       postcode,
+      state,
       district,
       city,
       password,
@@ -104,10 +96,10 @@ export default function RegisterScreen({ navigation }: Props) {
         <View style={styles.card}>
           <View style={styles.cardHandle} />
           <ScrollView contentContainerStyle={styles.cardContent} keyboardShouldPersistTaps="handled">
-            <Text style={styles.title}>{t('register.title')}</Text>
-            <Text style={styles.subtitle}>
+            <AppText style={styles.title}>{t('register.title')}</AppText>
+            <AppText style={styles.subtitle}>
               {t('register.subtitle', { appName: t('common.appName') })}
-            </Text>
+            </AppText>
 
             <Field label={t('register.fullName')} icon="person-outline" value={name} onChangeText={setName} placeholder={t('register.fullNamePlaceholder')} />
             <Field label={t('common.email')} icon="mail-outline" value={email} onChangeText={setEmail} placeholder={t('register.emailPlaceholder')} keyboardType="email-address" autoCapitalize="none" />
@@ -119,7 +111,7 @@ export default function RegisterScreen({ navigation }: Props) {
               onChangeText={setParkName}
               placeholder={t('register.parkNamePlaceholder')}
             />
-            <Text style={styles.parkHint}>{t('register.parkHint')}</Text>
+            <AppText style={styles.parkHint}>{t('register.parkHint')}</AppText>
             <Field
               label={t('common.address')}
               icon="home-outline"
@@ -140,20 +132,28 @@ export default function RegisterScreen({ navigation }: Props) {
                 style={{ flex: 1 }}
               />
               <SelectField
-                label={t('common.district')}
-                icon="map-outline"
-                value={district}
-                options={SELANGOR_DISTRICTS as unknown as string[]}
-                placeholder={t('register.districtPlaceholder')}
-                onSelect={(value) => setDistrict(value as SelangorDistrict)}
+                label={t('common.state')}
+                icon="flag-outline"
+                value={state}
+                options={MALAYSIA_STATE_OPTIONS}
+                placeholder={t('register.statePlaceholder')}
+                onSelect={setState}
                 style={{ flex: 2 }}
               />
             </View>
             <SelectField
+              label={t('common.district')}
+              icon="map-outline"
+              value={district}
+              options={SELANGOR_DISTRICTS as unknown as string[]}
+              placeholder={t('register.districtPlaceholder')}
+              onSelect={(value) => setDistrict(value as SelangorDistrict)}
+            />
+            <SelectField
               label={t('common.city')}
               icon="business-outline"
               value={city}
-              options={MALAYSIA_CITY_OPTIONS}
+              options={SELANGOR_CITIES}
               placeholder={t('register.cityPlaceholder')}
               onSelect={setCity}
             />
@@ -164,15 +164,15 @@ export default function RegisterScreen({ navigation }: Props) {
 
             <TouchableOpacity style={styles.pdpaRow} activeOpacity={0.75} onPress={() => setPdpaConsent((v) => !v)}>
               <Ionicons name={pdpaConsent ? 'checkbox' : 'square-outline'} size={20} color={colors.primary} />
-              <Text style={styles.pdpaText}>
+              <AppText style={styles.pdpaText}>
                 {t('register.pdpaConsent')}{' '}
-                <Text style={styles.pdpaLink} onPress={() => navigation.navigate('PdpaNotice')}>
+                <AppText style={styles.pdpaLink} onPress={() => navigation.navigate('PdpaNotice')}>
                   {t('register.pdpaReadMore')}
-                </Text>
-              </Text>
+                </AppText>
+              </AppText>
             </TouchableOpacity>
 
-            {error ? <Text style={styles.error}>{error}</Text> : null}
+            {error ? <AppText style={styles.error}>{error}</AppText> : null}
 
             <Button
               label={t('register.submit')}
@@ -182,10 +182,10 @@ export default function RegisterScreen({ navigation }: Props) {
             />
 
             <View style={styles.footerRow}>
-              <Text style={styles.footerText}>{t('register.haveAccount')}</Text>
-              <Text style={styles.link} onPress={() => navigation.navigate('Login')}>
+              <AppText style={styles.footerText}>{t('register.haveAccount')}</AppText>
+              <AppText style={styles.link} onPress={() => navigation.navigate('Login')}>
                 {t('register.loginLink')}
-              </Text>
+              </AppText>
             </View>
           </ScrollView>
         </View>
@@ -219,7 +219,7 @@ function Field({
   const [visible, setVisible] = useState(false);
   return (
     <View style={style}>
-      <Text style={styles.fieldLabel}>{label}</Text>
+      <AppText style={styles.fieldLabel}>{label}</AppText>
       <View style={[styles.inputWrap, multiline && styles.inputWrapMultiline]}>
         <View style={styles.inputIconWrap}>
           <Ionicons name={icon} size={15} color={colors.primary} />

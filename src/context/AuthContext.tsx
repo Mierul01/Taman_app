@@ -40,6 +40,7 @@ export type User = {
   postcode: string;
   city: string;
   district: string;
+  state: string;
   parkName: string;
   familyMembers: FamilyMember[];
   role: Role;
@@ -47,7 +48,7 @@ export type User = {
   avatarUri?: string;
 };
 
-export type ProfileUpdate = Pick<User, 'name' | 'phone' | 'address' | 'postcode' | 'city' | 'district'>;
+export type ProfileUpdate = Pick<User, 'name' | 'phone' | 'address' | 'postcode' | 'city' | 'district' | 'state'>;
 
 type AuthContextType = {
   user: User | null;
@@ -89,6 +90,7 @@ function normalize(u: any): User {
     role: isSuperAdmin ? 'admin' : u.role ?? 'resident',
     parkName: u.parkName ?? '',
     district: u.district ?? '',
+    state: u.state ?? '',
   };
 }
 
@@ -154,6 +156,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         postcode: data.postcode,
         city: data.city,
         district: data.district,
+        state: data.state,
         parkName: data.parkName,
         familyMembers: [],
         role: isFirstInPark || isSuperAdmin ? 'admin' : 'resident',
@@ -234,6 +237,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         postcode: user.postcode,
         city: user.city,
         district: user.district,
+        state: user.state,
         parkName: user.parkName,
         familyMembers: [],
         role: 'resident',

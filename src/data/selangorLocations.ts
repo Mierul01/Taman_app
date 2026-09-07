@@ -37,3 +37,7 @@ export const SELANGOR_CITIES_BY_DISTRICT: Record<SelangorDistrict, string[]> = {
   'Sabak Bernam': ['Sabak Bernam', 'Sungai Besar', 'Sekinchan', 'Panchang Bedena'],
   Sepang: ['Sepang', 'Salak Tinggi', 'Cyberjaya', 'Dengkil', 'Bandar Baru Salak Tinggi'],
 };
+
+export const SELANGOR_CITIES: string[] = Array.from(
+  new Set(Object.values(SELANGOR_CITIES_BY_DISTRICT).flat())
+).sort();
