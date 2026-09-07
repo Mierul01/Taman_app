@@ -9,33 +9,17 @@ import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme
 import { useThemeColors, useThemeTypography } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
-import { Program, emergencyContacts } from '../data/mockData';
+import { usePayments } from '../context/PaymentContext';
+import { Program, emergencyContacts, feeItems } from '../data/mockData';
 import { getAllPrograms } from '../data/programsStore';
 import HighlightCarousel from '../components/HighlightCarousel';
 import AppText from '../components/AppText';
+import Button from '../components/Button';
+import { toTitleCase } from '../utils/formatName';
 
 type Props = BottomTabScreenProps<MainTabParamList, 'Dashboard'>;
 
-type MenuItem = {
-  key: keyof MainTabParamList;
-  labelKey: string;
-  icon: keyof typeof Ionicons.glyphMap;
-  color: string;
-};
-
-const baseMenuItems: MenuItem[] = [
-  { key: 'Programs', labelKey: 'dashboard.programs', icon: 'calendar', color: '#1B7A43' },
-  { key: 'Payments', labelKey: 'dashboard.payments', icon: 'card', color: '#2E6FD9' },
-  { key: 'Charity', labelKey: 'dashboard.charity', icon: 'heart', color: '#D9862E' },
-  { key: 'Committee', labelKey: 'dashboard.committee', icon: 'people', color: '#B23B6B' },
-];
-
-const collectionsMenuItem: MenuItem = {
-  key: 'Collections',
-  labelKey: 'dashboard.collections',
-  icon: 'stats-chart',
-  color: '#6B4EE0',
-};
+const totalFeeAmount = feeItems.reduce((sum, item) => sum + item.amount, 0);
 
 export default function DashboardScreen({ navigation }: Props) {
   const colors = useThemeColors();
@@ -44,9 +28,11 @@ export default function DashboardScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
+  const { getUserPaymentRecords } = usePayments();
   const [upcoming, setUpcoming] = useState<Program[]>([]);
-  const menuItems = user && user.role !== 'resident' ? [...baseMenuItems, collectionsMenuItem] : baseMenuItems;
+  const [paidTotal, setPaidTotal] = useState(0);
   const emergencyPreview = emergencyContacts.slice(0, 2);
+  const isDependent = !!user?.dependentOf;
 
   useFocusEffect(
     useCallback(() => {
@@ -58,6 +44,23 @@ export default function DashboardScreen({ navigation }: Props) {
       });
     }, [user?.parkName])
   );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) return;
+      (async () => {
+        let paid = 0;
+        for (const item of feeItems) {
+          const records = await getUserPaymentRecords(user.email, item.id);
+          paid += records.reduce((sum, r) => sum + r.amount, 0);
+        }
+        setPaidTotal(paid);
+      })();
+    }, [user?.email])
+  );
+
+  const feeRemaining = Math.max(0, totalFeeAmount - paidTotal);
+  const feePct = Math.min(100, Math.round((paidTotal / totalFeeAmount) * 100));
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ paddingBottom: spacing.xl }}>
@@ -93,7 +96,7 @@ export default function DashboardScreen({ navigation }: Props) {
           <View style={styles.headerTextWrap}>
             <AppText style={styles.greetingCaption}>{t('dashboard.welcome')}</AppText>
             <AppText style={styles.greetingName} numberOfLines={1} ellipsizeMode="tail">
-              {user?.name ?? t('role.resident')}
+              {user?.name ? toTitleCase(user.name) : t('role.resident')}
             </AppText>
             <AppText style={styles.greetingSubtitle} numberOfLines={1}>
               {user?.parkName}
@@ -109,22 +112,41 @@ export default function DashboardScreen({ navigation }: Props) {
         </View>
       </View>
 
-      <AppText style={styles.sectionTitle}>{t('dashboard.mainMenu')}</AppText>
-      <View style={styles.grid}>
-        {menuItems.map((item) => (
-          <TouchableOpacity
-            key={item.key}
-            style={styles.menuCard}
-            activeOpacity={0.8}
-            onPress={() => navigation.navigate(item.key)}
-          >
-            <View style={[styles.menuIcon, { backgroundColor: withAlpha(item.color, 0.12) }]}>
-              <Ionicons name={item.icon} size={24} color={item.color} />
-            </View>
-            <AppText style={styles.menuLabel}>{t(item.labelKey)}</AppText>
-          </TouchableOpacity>
-        ))}
-      </View>
+      <TouchableOpacity
+        style={styles.feeCard}
+        activeOpacity={0.85}
+        onPress={() => navigation.navigate('Payments')}
+      >
+        <View style={styles.feeCardTop}>
+          <View style={styles.feeIconWrap}>
+            <Ionicons name="card" size={20} color={colors.white} />
+          </View>
+          <View style={{ flex: 1, marginLeft: spacing.md }}>
+            <AppText style={styles.feeTitle}>{t('dashboard.feeStatusTitle')}</AppText>
+            <AppText style={styles.feeSummary}>
+              {t('dashboard.feeProgress', { paid: paidTotal.toFixed(2), total: totalFeeAmount.toFixed(2) })}
+            </AppText>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+        </View>
+        <View style={styles.feeProgressTrack}>
+          <View style={[styles.feeProgressFill, { width: `${feePct}%` }]} />
+        </View>
+        <View style={styles.feeCardBottom}>
+          <AppText style={styles.feeStatusLabel}>
+            {feeRemaining > 0
+              ? t('dashboard.feeRemaining', { remaining: feeRemaining.toFixed(2) })
+              : t('dashboard.feeAllSettled')}
+          </AppText>
+          {!isDependent && feeRemaining > 0 && (
+            <Button
+              label={t('payments.payNow')}
+              onPress={() => navigation.navigate('Payments')}
+              style={styles.feeButton}
+            />
+          )}
+        </View>
+      </TouchableOpacity>
 
       <View style={styles.sectionRow}>
         <AppText style={styles.sectionTitle}>{t('dashboard.upcomingPrograms')}</AppText>
@@ -282,32 +304,62 @@ const makeStyles = (colors: ColorPalette) =>
       fontWeight: '600',
       fontSize: 13,
     },
-    grid: {
-      flexDirection: 'row',
-      flexWrap: 'wrap',
-      paddingHorizontal: spacing.lg - spacing.xs,
-      gap: spacing.sm,
-    },
-    menuCard: {
-      width: '47%',
+    feeCard: {
       backgroundColor: colors.surface,
+      marginHorizontal: spacing.lg,
+      marginTop: spacing.lg,
       borderRadius: radius.md,
       padding: spacing.md,
-      marginHorizontal: spacing.xs / 2,
       ...shadow.card,
     },
-    menuIcon: {
-      width: 48,
-      height: 48,
-      borderRadius: 24,
+    feeCardTop: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    feeIconWrap: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: colors.primary,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: spacing.sm,
     },
-    menuLabel: {
-      fontSize: 14,
-      fontWeight: '600',
+    feeTitle: {
+      fontSize: 15,
+      fontWeight: '700',
       color: colors.text,
+    },
+    feeSummary: {
+      fontSize: 12,
+      color: colors.textMuted,
+      marginTop: 2,
+    },
+    feeProgressTrack: {
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: colors.border,
+      marginTop: spacing.md,
+      overflow: 'hidden',
+    },
+    feeProgressFill: {
+      height: '100%',
+      borderRadius: 3,
+      backgroundColor: colors.primary,
+    },
+    feeCardBottom: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      marginTop: spacing.sm,
+    },
+    feeStatusLabel: {
+      flex: 1,
+      fontSize: 12,
+      color: colors.textMuted,
+    },
+    feeButton: {
+      paddingHorizontal: spacing.lg,
+      paddingVertical: spacing.sm,
     },
     upcomingCard: {
       flexDirection: 'row',
