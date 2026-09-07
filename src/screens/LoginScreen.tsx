@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,6 +28,7 @@ export default function LoginScreen({ navigation }: Props) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -37,7 +39,7 @@ export default function LoginScreen({ navigation }: Props) {
       return;
     }
     setLoading(true);
-    const result = await login(email, password);
+    const result = await login(email, password, rememberMe);
     setLoading(false);
     if (!result.success) {
       setError(t(result.messageKey ?? 'common.loginFailed'));
@@ -45,117 +47,141 @@ export default function LoginScreen({ navigation }: Props) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-        <View style={styles.headerBlock}>
-          <Ionicons name="leaf" size={150} color="rgba(255,255,255,0.08)" style={styles.headerWatermark} />
-          <View style={styles.logoCircle}>
-            <Ionicons name="leaf" size={30} color={colors.primary} />
-          </View>
-          <Text style={styles.title}>{t('login.title')}</Text>
-          <Text style={styles.subtitle}>{t('login.subtitle', { appName: t('common.appName') })}</Text>
-        </View>
+    <View style={styles.backdrop}>
+      <Ionicons name="leaf" size={200} color="rgba(255,255,255,0.06)" style={styles.backdropWatermarkTop} />
+      <Ionicons name="leaf" size={160} color="rgba(255,255,255,0.06)" style={styles.backdropWatermarkBottom} />
 
-        <View style={styles.form}>
-          <Text style={styles.fieldLabel}>{t('common.email')}</Text>
-          <View style={styles.inputWrap}>
-            <View style={styles.inputIconWrap}>
-              <Ionicons name="mail-outline" size={16} color={colors.primary} />
+      <View style={styles.logoCircle}>
+        <Ionicons name="leaf" size={28} color={colors.primary} />
+      </View>
+
+      <KeyboardAvoidingView
+        style={styles.cardWrap}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.card}>
+          <ScrollView contentContainerStyle={styles.cardContent} keyboardShouldPersistTaps="handled">
+            <Text style={styles.title}>{t('login.title')}</Text>
+            <Text style={styles.subtitle}>{t('login.subtitle', { appName: t('common.appName') })}</Text>
+
+            <Text style={styles.fieldLabel}>{t('common.email')}</Text>
+            <View style={styles.inputWrap}>
+              <View style={styles.inputIconWrap}>
+                <Ionicons name="mail-outline" size={16} color={colors.primary} />
+              </View>
+              <TextInput
+                value={email}
+                onChangeText={setEmail}
+                placeholder={t('login.emailPlaceholder')}
+                placeholderTextColor={colors.textMuted}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                style={styles.input}
+              />
             </View>
-            <TextInput
-              value={email}
-              onChangeText={setEmail}
-              placeholder={t('login.emailPlaceholder')}
-              placeholderTextColor={colors.textMuted}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              style={styles.input}
-            />
-          </View>
 
-          <Text style={styles.fieldLabel}>{t('login.passwordLabel')}</Text>
-          <View style={styles.inputWrap}>
-            <View style={styles.inputIconWrap}>
-              <Ionicons name="lock-closed-outline" size={16} color={colors.primary} />
+            <Text style={styles.fieldLabel}>{t('login.passwordLabel')}</Text>
+            <View style={styles.inputWrap}>
+              <View style={styles.inputIconWrap}>
+                <Ionicons name="lock-closed-outline" size={16} color={colors.primary} />
+              </View>
+              <TextInput
+                value={password}
+                onChangeText={setPassword}
+                placeholder={t('login.passwordPlaceholder')}
+                placeholderTextColor={colors.textMuted}
+                secureTextEntry={!showPassword}
+                style={styles.input}
+              />
+              <Ionicons
+                name={showPassword ? 'eye-off-outline' : 'eye-outline'}
+                size={19}
+                color={colors.textMuted}
+                onPress={() => setShowPassword((v) => !v)}
+              />
             </View>
-            <TextInput
-              value={password}
-              onChangeText={setPassword}
-              placeholder={t('login.passwordPlaceholder')}
-              placeholderTextColor={colors.textMuted}
-              secureTextEntry={!showPassword}
-              style={styles.input}
-            />
-            <Ionicons
-              name={showPassword ? 'eye-off-outline' : 'eye-outline'}
-              size={19}
-              color={colors.textMuted}
-              onPress={() => setShowPassword((v) => !v)}
-            />
-          </View>
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+            <TouchableOpacity style={styles.rememberRow} activeOpacity={0.75} onPress={() => setRememberMe((v) => !v)}>
+              <Ionicons name={rememberMe ? 'checkbox' : 'square-outline'} size={19} color={colors.primary} />
+              <Text style={styles.rememberText}>{t('login.rememberMe')}</Text>
+            </TouchableOpacity>
 
-          <Button label={t('login.submit')} onPress={handleLogin} loading={loading} style={{ marginTop: spacing.lg }} />
+            {error ? <Text style={styles.error}>{error}</Text> : null}
 
-          <View style={styles.footerRow}>
-            <Text style={styles.footerText}>{t('login.noAccount')}</Text>
-            <Text style={styles.link} onPress={() => navigation.navigate('Register')}>
-              {t('login.registerLink')}
-            </Text>
-          </View>
+            <Button label={t('login.submit')} onPress={handleLogin} loading={loading} style={{ marginTop: spacing.lg }} />
+
+            <View style={styles.footerRow}>
+              <Text style={styles.footerText}>{t('login.noAccount')}</Text>
+              <Text style={styles.link} onPress={() => navigation.navigate('Register')}>
+                {t('login.registerLink')}
+              </Text>
+            </View>
+          </ScrollView>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 const makeStyles = (colors: ColorPalette) =>
   StyleSheet.create({
-    headerBlock: {
+    backdrop: {
+      flex: 1,
       backgroundColor: colors.primary,
-      borderBottomLeftRadius: radius.lg * 1.4,
-      borderBottomRightRadius: radius.lg * 1.4,
       overflow: 'hidden',
-      alignItems: 'center',
-      paddingTop: 72,
-      paddingBottom: spacing.xl,
-      paddingHorizontal: spacing.lg,
     },
-    headerWatermark: {
+    backdropWatermarkTop: {
       position: 'absolute',
-      right: -24,
-      top: -24,
+      right: -50,
+      top: -40,
+    },
+    backdropWatermarkBottom: {
+      position: 'absolute',
+      left: -40,
+      bottom: -30,
     },
     logoCircle: {
-      width: 68,
-      height: 68,
-      borderRadius: 34,
+      alignSelf: 'center',
+      marginTop: 64,
+      marginBottom: spacing.md,
+      width: 64,
+      height: 64,
+      borderRadius: 32,
       backgroundColor: colors.white,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: spacing.md,
       ...shadow.card,
     },
+    cardWrap: {
+      flex: 1,
+    },
+    card: {
+      flex: 1,
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: radius.lg * 1.4,
+      borderTopRightRadius: radius.lg * 1.4,
+      marginHorizontal: spacing.md,
+      marginBottom: 0,
+      ...shadow.card,
+      overflow: 'hidden',
+    },
+    cardContent: {
+      padding: spacing.lg,
+      paddingTop: spacing.xl,
+      flexGrow: 1,
+    },
     title: {
-      fontSize: 26,
+      fontSize: 24,
       fontWeight: '700',
-      color: colors.white,
+      color: colors.text,
+      textAlign: 'center',
     },
     subtitle: {
       marginTop: spacing.xs,
-      fontSize: 14,
-      color: colors.primaryLight,
+      fontSize: 13,
+      color: colors.textMuted,
       textAlign: 'center',
-    },
-    form: {
-      flex: 1,
-      paddingHorizontal: spacing.lg,
-      paddingTop: spacing.lg,
-      paddingBottom: spacing.xl,
+      marginBottom: spacing.md,
     },
     fieldLabel: {
       fontSize: 13,
@@ -167,7 +193,7 @@ const makeStyles = (colors: ColorPalette) =>
     inputWrap: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.surface,
+      backgroundColor: colors.background,
       borderWidth: 1,
       borderColor: colors.border,
       borderRadius: radius.md,
@@ -187,6 +213,17 @@ const makeStyles = (colors: ColorPalette) =>
       flex: 1,
       fontSize: 15,
       color: colors.text,
+    },
+    rememberRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.xs,
+      marginTop: spacing.md,
+    },
+    rememberText: {
+      fontSize: 13,
+      color: colors.text,
+      fontWeight: '600',
     },
     error: {
       color: colors.danger,

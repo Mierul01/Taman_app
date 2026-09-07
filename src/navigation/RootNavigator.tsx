@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import SplashScreen from '../screens/SplashScreen';
 import LoginScreen from '../screens/LoginScreen';
 import RegisterScreen from '../screens/RegisterScreen';
+import PdpaNoticeScreen from '../screens/PdpaNoticeScreen';
 import MainTabNavigator from './MainTabNavigator';
 import ProgramDetailScreen from '../screens/ProgramDetailScreen';
 import AddProgramScreen from '../screens/AddProgramScreen';
@@ -55,6 +56,7 @@ export default function RootNavigator() {
         <>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
+          <Stack.Screen name="PdpaNotice" component={PdpaNoticeScreen} />
         </>
       )}
     </Stack.Navigator>

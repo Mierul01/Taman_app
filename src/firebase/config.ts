@@ -1,7 +1,14 @@
 import { Platform } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { FirebaseApp, getApp, getApps, initializeApp } from 'firebase/app';
-import { Auth, getAuth, initializeAuth } from 'firebase/auth';
+import {
+  Auth,
+  browserLocalPersistence,
+  browserSessionPersistence,
+  getAuth,
+  inMemoryPersistence,
+  initializeAuth,
+} from 'firebase/auth';
 // @ts-expect-error -- firebase/auth's package.json "exports" map lists a
 // "types" condition ahead of "react-native", so tsc's type resolution (run
 // outside Metro) picks the browser typings and misses this symbol. Metro
@@ -38,6 +45,12 @@ if (Platform.OS === 'web') {
 
 export const auth = authInstance;
 export const db = getFirestore(app);
+
+// Used to toggle "Remember me" at login time: keep the session across app
+// restarts (the default), or only for as long as this app instance stays
+// open in memory.
+export const rememberMePersistence = Platform.OS === 'web' ? browserLocalPersistence : getReactNativePersistence(AsyncStorage);
+export const sessionOnlyPersistence = Platform.OS === 'web' ? browserSessionPersistence : inMemoryPersistence;
 
 // A second, isolated Firebase Auth session used only for creating a linked
 // family-member account. Firebase Auth's createUserWithEmailAndPassword()

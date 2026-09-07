@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useMemo, useState } from '
 import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
+  setPersistence,
   signInWithEmailAndPassword,
   signOut,
   updatePassword as firebaseUpdatePassword,
@@ -19,7 +20,7 @@ import {
   updateDoc,
   where,
 } from 'firebase/firestore';
-import { auth, db, getSecondaryAuth } from '../firebase/config';
+import { auth, db, getSecondaryAuth, rememberMePersistence, sessionOnlyPersistence } from '../firebase/config';
 
 export type FamilyMember = {
   id: string;
@@ -50,7 +51,11 @@ export type ProfileUpdate = Pick<User, 'name' | 'phone' | 'address' | 'postcode'
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ success: boolean; messageKey?: string }>;
+  login: (
+    email: string,
+    password: string,
+    rememberMe?: boolean
+  ) => Promise<{ success: boolean; messageKey?: string }>;
   register: (
     data: Omit<User, 'familyMembers' | 'role'> & { password: string }
   ) => Promise<{ success: boolean; messageKey?: string }>;
@@ -108,8 +113,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     return unsubscribe;
   }, []);
 
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string, rememberMe = true) => {
     try {
+      await setPersistence(auth, rememberMe ? rememberMePersistence : sessionOnlyPersistence);
       const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
       const snap = await getDoc(doc(db, 'users', cred.user.uid));
       if (!snap.exists()) {
@@ -125,6 +131,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const register = async (data: Omit<User, 'familyMembers' | 'role'> & { password: string }) => {
     try {
+      // A previous login with "remember me" unchecked leaves the auth
+      // instance in session-only mode; new accounts should always persist.
+      await setPersistence(auth, rememberMePersistence);
       const emailTrimmed = data.email.trim();
       const isSuperAdmin = SUPER_ADMIN_EMAILS.includes(emailTrimmed.toLowerCase());
 

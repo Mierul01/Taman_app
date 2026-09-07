@@ -43,6 +43,7 @@ export const translations = {
       noAccount: "Don't have an account? ",
       registerLink: 'Register now',
       fillBoth: 'Please fill in email and password.',
+      rememberMe: 'Remember me',
     },
     register: {
       title: 'Register Account',
@@ -76,9 +77,29 @@ export const translations = {
       pdpaConsent: 'I agree to the collection, use and storage of my personal data as described in the',
       pdpaReadMore: 'PDPA Notice.',
       pdpaRequired: 'Please agree to the PDPA notice to continue.',
-      pdpaModalTitle: 'PDPA Notice',
-      pdpaModalBody:
-        'By registering, you consent to Neighbourly collecting, using and storing your personal data — including your name, email address, phone number, home address, and park/community details — for the purpose of managing your residents’ association account. This includes fee and charity payment records, community program participation, family member records you choose to add, and communication with your committee.\n\nThis processing is carried out in accordance with the Personal Data Protection Act 2010 (PDPA) of Malaysia. Your data is stored securely and is only accessible to your park’s committee members for the purposes described above.\n\nYou may contact your park’s admin at any time to request access to, correction of, or removal of your personal data.',
+    },
+    pdpa: {
+      title: 'Personal Data Protection Notice',
+      intro:
+        'Neighbourly is committed to protecting your personal data in accordance with the Personal Data Protection Act 2010 (PDPA) of Malaysia. This notice explains what personal data we collect, how it is used, and your rights as a data subject.',
+      s1Title: '1. Information We Collect',
+      s1Body:
+        'When you register and use the app, we collect your full name, email address, phone number, home address, postcode, city, and park or community name. If you choose to add family members to your account, we also collect their name, relationship to you, and age. We additionally keep a record of the fee and charity contributions you report through the app.',
+      s2Title: '2. Purpose of Collection',
+      s2Body:
+        'Your personal data is collected and processed to create and manage your resident account, record fee and charity contributions, organise community programs, allow committee members to contact residents, and administer roles and permissions within your park.',
+      s3Title: '3. Disclosure of Your Data',
+      s3Body:
+        'Your data is only accessible to the committee members of your own park, namely the AJK, treasurer, chairman and admin, for the purposes described in this notice. Your data is not sold, rented or disclosed to any third party for marketing purposes.',
+      s4Title: '4. Data Storage and Security',
+      s4Body:
+        'Your data is stored securely using Firebase, a cloud platform operated by Google. Reasonable technical and organisational measures are in place to protect your data from unauthorised access, alteration or loss.',
+      s5Title: '5. Your Rights',
+      s5Body:
+        'Under the PDPA, you have the right to access your personal data, request correction of inaccurate data, withdraw your consent and request deletion of your data, and limit how your data is processed. To exercise any of these rights, please contact your park admin.',
+      s6Title: '6. Consent',
+      s6Body:
+        'By registering an account, you confirm that you have read and understood this notice, and you consent to the collection, use and disclosure of your personal data as described above.',
     },
     dashboard: {
       welcome: 'Welcome,',
@@ -345,6 +366,7 @@ export const translations = {
       noAccount: 'Belum ada akaun? ',
       registerLink: 'Daftar sekarang',
       fillBoth: 'Sila isi e-mel dan kata laluan.',
+      rememberMe: 'Ingat saya',
     },
     register: {
       title: 'Daftar Akaun',
@@ -378,9 +400,29 @@ export const translations = {
       pdpaConsent: 'Saya bersetuju dengan pengumpulan, penggunaan dan penyimpanan data peribadi saya seperti dinyatakan dalam',
       pdpaReadMore: 'Notis PDPA.',
       pdpaRequired: 'Sila bersetuju dengan notis PDPA untuk meneruskan.',
-      pdpaModalTitle: 'Notis PDPA',
-      pdpaModalBody:
-        'Dengan mendaftar, anda bersetuju membenarkan Neighbourly mengumpul, menggunakan dan menyimpan data peribadi anda — termasuk nama, alamat e-mel, nombor telefon, alamat rumah dan maklumat taman/komuniti anda — bagi tujuan menguruskan akaun Persatuan Penduduk anda. Ini termasuk rekod bayaran yuran dan khairat, penyertaan program komuniti, rekod ahli keluarga yang anda pilih untuk ditambah, serta komunikasi dengan AJK anda.\n\nPemprosesan ini dijalankan selaras dengan Akta Perlindungan Data Peribadi 2010 (PDPA) Malaysia. Data anda disimpan dengan selamat dan hanya boleh diakses oleh ahli jawatankuasa taman anda bagi tujuan yang dinyatakan di atas.\n\nAnda boleh menghubungi admin taman anda pada bila-bila masa untuk memohon akses, pembetulan atau pembuangan data peribadi anda.',
+    },
+    pdpa: {
+      title: 'Notis Perlindungan Data Peribadi',
+      intro:
+        'Neighbourly komited melindungi data peribadi anda selaras dengan Akta Perlindungan Data Peribadi 2010 (PDPA) Malaysia. Notis ini menerangkan data peribadi yang kami kumpulkan, cara ia digunakan, dan hak anda sebagai subjek data.',
+      s1Title: '1. Maklumat Yang Kami Kumpulkan',
+      s1Body:
+        'Semasa anda mendaftar dan menggunakan aplikasi ini, kami mengumpulkan nama penuh, alamat e-mel, nombor telefon, alamat rumah, poskod, bandar, serta nama taman atau komuniti anda. Jika anda memilih untuk menambah ahli keluarga ke akaun anda, kami turut mengumpulkan nama, hubungan dengan anda, dan umur mereka. Kami juga menyimpan rekod sumbangan yuran dan khairat yang anda laporkan melalui aplikasi ini.',
+      s2Title: '2. Tujuan Pengumpulan',
+      s2Body:
+        'Data peribadi anda dikumpul dan diproses untuk mencipta dan menguruskan akaun penduduk anda, merekodkan sumbangan yuran dan khairat, menganjurkan program komuniti, membolehkan ahli jawatankuasa menghubungi penduduk, serta mentadbir peranan dan kebenaran dalam taman anda.',
+      s3Title: '3. Pendedahan Data Anda',
+      s3Body:
+        'Data anda hanya boleh diakses oleh ahli jawatankuasa taman anda sendiri, iaitu AJK, bendahari, pengerusi dan admin, bagi tujuan yang dinyatakan dalam notis ini. Data anda tidak dijual, disewakan atau didedahkan kepada mana-mana pihak ketiga untuk tujuan pemasaran.',
+      s4Title: '4. Penyimpanan dan Keselamatan Data',
+      s4Body:
+        'Data anda disimpan dengan selamat menggunakan Firebase, sebuah platform awan yang dikendalikan oleh Google. Langkah teknikal dan organisasi yang munasabah diambil untuk melindungi data anda daripada akses, pengubahan atau kehilangan yang tidak dibenarkan.',
+      s5Title: '5. Hak Anda',
+      s5Body:
+        'Di bawah PDPA, anda berhak untuk mengakses data peribadi anda, memohon pembetulan data yang tidak tepat, menarik balik persetujuan dan memohon pembuangan data anda, serta menghadkan cara data anda diproses. Untuk menggunakan mana-mana hak ini, sila hubungi admin taman anda.',
+      s6Title: '6. Persetujuan',
+      s6Body:
+        'Dengan mendaftar akaun, anda mengesahkan bahawa anda telah membaca dan memahami notis ini, dan anda bersetuju dengan pengumpulan, penggunaan dan pendedahan data peribadi anda seperti yang dinyatakan di atas.',
     },
     dashboard: {
       welcome: 'Selamat Datang,',

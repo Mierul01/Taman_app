@@ -3,6 +3,7 @@ import type { NavigatorScreenParams } from '@react-navigation/native';
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
+  PdpaNotice: undefined;
   Main: NavigatorScreenParams<MainTabParamList>;
   ProgramDetail: { programId: string };
   AddProgram: undefined;

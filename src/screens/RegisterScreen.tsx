@@ -14,10 +14,9 @@ import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme';
-import { useThemeColors, useThemeTypography } from '../context/ThemeContext';
+import { useThemeColors } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import Button from '../components/Button';
-import AppModal from '../components/AppModal';
 import { useAuth } from '../context/AuthContext';
 import PasswordStrengthChecklist, { PasswordMatchIndicator } from '../components/PasswordStrengthChecklist';
 
@@ -25,7 +24,6 @@ type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
 export default function RegisterScreen({ navigation }: Props) {
   const colors = useThemeColors();
-  const typography = useThemeTypography();
   const { t } = useLanguage();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { register } = useAuth();
@@ -39,7 +37,6 @@ export default function RegisterScreen({ navigation }: Props) {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [pdpaConsent, setPdpaConsent] = useState(false);
-  const [showPdpaModal, setShowPdpaModal] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -88,104 +85,89 @@ export default function RegisterScreen({ navigation }: Props) {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1, backgroundColor: colors.background }}
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    >
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled">
-        <View style={styles.headerBlock}>
-          <Ionicons name="leaf" size={120} color="rgba(255,255,255,0.08)" style={styles.headerWatermark} />
-          <View style={styles.logoCircle}>
-            <Ionicons name="leaf" size={24} color={colors.primary} />
-          </View>
-          <Text style={styles.title}>{t('register.title')}</Text>
-          <Text style={styles.subtitle}>{t('register.subtitle', { appName: t('common.appName') })}</Text>
-        </View>
+    <View style={styles.backdrop}>
+      <Ionicons name="leaf" size={160} color="rgba(255,255,255,0.06)" style={styles.backdropWatermarkTop} />
 
-        <View style={styles.form}>
-          <Field label={t('register.fullName')} icon="person-outline" value={name} onChangeText={setName} placeholder={t('register.fullNamePlaceholder')} />
-          <Field label={t('common.email')} icon="mail-outline" value={email} onChangeText={setEmail} placeholder={t('register.emailPlaceholder')} keyboardType="email-address" autoCapitalize="none" />
-          <Field label={t('common.phone')} icon="call-outline" value={phone} onChangeText={setPhone} placeholder={t('register.phonePlaceholder')} keyboardType="phone-pad" />
-          <Field
-            label={t('register.parkName')}
-            icon="business-outline"
-            value={parkName}
-            onChangeText={setParkName}
-            placeholder={t('register.parkNamePlaceholder')}
-          />
-          <Text style={styles.parkHint}>{t('register.parkHint')}</Text>
-          <Field
-            label={t('common.address')}
-            icon="home-outline"
-            value={address}
-            onChangeText={setAddress}
-            placeholder={t('register.addressPlaceholder')}
-            multiline
-          />
-          <View style={styles.row}>
+      <View style={styles.logoCircle}>
+        <Ionicons name="leaf" size={22} color={colors.primary} />
+      </View>
+
+      <KeyboardAvoidingView style={styles.cardWrap} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+        <View style={styles.card}>
+          <ScrollView contentContainerStyle={styles.cardContent} keyboardShouldPersistTaps="handled">
+            <Text style={styles.title}>{t('register.title')}</Text>
+            <Text style={styles.subtitle}>
+              {t('register.subtitle', { appName: t('common.appName') })}
+            </Text>
+
+            <Field label={t('register.fullName')} icon="person-outline" value={name} onChangeText={setName} placeholder={t('register.fullNamePlaceholder')} />
+            <Field label={t('common.email')} icon="mail-outline" value={email} onChangeText={setEmail} placeholder={t('register.emailPlaceholder')} keyboardType="email-address" autoCapitalize="none" />
+            <Field label={t('common.phone')} icon="call-outline" value={phone} onChangeText={setPhone} placeholder={t('register.phonePlaceholder')} keyboardType="phone-pad" />
             <Field
-              label={t('common.postcode')}
-              icon="location-outline"
-              value={postcode}
-              onChangeText={setPostcode}
-              placeholder={t('register.postcodePlaceholder')}
-              keyboardType="number-pad"
-              maxLength={5}
-              style={{ flex: 1 }}
-            />
-            <Field
-              label={t('common.city')}
+              label={t('register.parkName')}
               icon="business-outline"
-              value={city}
-              onChangeText={setCity}
-              placeholder={t('register.cityPlaceholder')}
-              style={{ flex: 2 }}
+              value={parkName}
+              onChangeText={setParkName}
+              placeholder={t('register.parkNamePlaceholder')}
             />
-          </View>
-          <Field label={t('register.password')} icon="lock-closed-outline" value={password} onChangeText={setPassword} placeholder={t('register.passwordPlaceholder')} secureTextEntry />
-          <PasswordStrengthChecklist password={password} />
-          <Field label={t('register.confirmPassword')} icon="lock-closed-outline" value={confirmPassword} onChangeText={setConfirmPassword} placeholder={t('register.confirmPasswordPlaceholder')} secureTextEntry />
-          <PasswordMatchIndicator password={password} confirmPassword={confirmPassword} />
+            <Text style={styles.parkHint}>{t('register.parkHint')}</Text>
+            <Field
+              label={t('common.address')}
+              icon="home-outline"
+              value={address}
+              onChangeText={setAddress}
+              placeholder={t('register.addressPlaceholder')}
+              multiline
+            />
+            <View style={styles.row}>
+              <Field
+                label={t('common.postcode')}
+                icon="location-outline"
+                value={postcode}
+                onChangeText={setPostcode}
+                placeholder={t('register.postcodePlaceholder')}
+                keyboardType="number-pad"
+                maxLength={5}
+                style={{ flex: 1 }}
+              />
+              <Field
+                label={t('common.city')}
+                icon="business-outline"
+                value={city}
+                onChangeText={setCity}
+                placeholder={t('register.cityPlaceholder')}
+                style={{ flex: 2 }}
+              />
+            </View>
+            <Field label={t('register.password')} icon="lock-closed-outline" value={password} onChangeText={setPassword} placeholder={t('register.passwordPlaceholder')} secureTextEntry />
+            <PasswordStrengthChecklist password={password} />
+            <Field label={t('register.confirmPassword')} icon="lock-closed-outline" value={confirmPassword} onChangeText={setConfirmPassword} placeholder={t('register.confirmPasswordPlaceholder')} secureTextEntry />
+            <PasswordMatchIndicator password={password} confirmPassword={confirmPassword} />
 
-          <TouchableOpacity style={styles.pdpaRow} activeOpacity={0.75} onPress={() => setPdpaConsent((v) => !v)}>
-            <Ionicons
-              name={pdpaConsent ? 'checkbox' : 'square-outline'}
-              size={20}
-              color={colors.primary}
-            />
-            <Text style={styles.pdpaText}>
-              {t('register.pdpaConsent')}{' '}
-              <Text style={styles.pdpaLink} onPress={() => setShowPdpaModal(true)}>
-                {t('register.pdpaReadMore')}
+            <TouchableOpacity style={styles.pdpaRow} activeOpacity={0.75} onPress={() => setPdpaConsent((v) => !v)}>
+              <Ionicons name={pdpaConsent ? 'checkbox' : 'square-outline'} size={20} color={colors.primary} />
+              <Text style={styles.pdpaText}>
+                {t('register.pdpaConsent')}{' '}
+                <Text style={styles.pdpaLink} onPress={() => navigation.navigate('PdpaNotice')}>
+                  {t('register.pdpaReadMore')}
+                </Text>
               </Text>
-            </Text>
-          </TouchableOpacity>
+            </TouchableOpacity>
 
-          {error ? <Text style={styles.error}>{error}</Text> : null}
+            {error ? <Text style={styles.error}>{error}</Text> : null}
 
-          <Button label={t('register.submit')} onPress={handleRegister} loading={loading} style={{ marginTop: spacing.md }} />
+            <Button label={t('register.submit')} onPress={handleRegister} loading={loading} style={{ marginTop: spacing.md }} />
 
-          <View style={styles.footerRow}>
-            <Text style={typography.caption}>{t('register.haveAccount')}</Text>
-            <Text style={styles.link} onPress={() => navigation.navigate('Login')}>
-              {t('register.loginLink')}
-            </Text>
-          </View>
+            <View style={styles.footerRow}>
+              <Text style={styles.footerText}>{t('register.haveAccount')}</Text>
+              <Text style={styles.link} onPress={() => navigation.navigate('Login')}>
+                {t('register.loginLink')}
+              </Text>
+            </View>
+          </ScrollView>
         </View>
-      </ScrollView>
-
-      <AppModal visible={showPdpaModal} onClose={() => setShowPdpaModal(false)}>
-        <ScrollView showsVerticalScrollIndicator={false}>
-          <Text style={typography.h3}>{t('register.pdpaModalTitle')}</Text>
-          <Text style={styles.pdpaModalBody}>{t('register.pdpaModalBody')}</Text>
-          <Button
-            label={t('common.close')}
-            onPress={() => setShowPdpaModal(false)}
-            style={{ marginTop: spacing.lg }}
-          />
-        </ScrollView>
-      </AppModal>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
@@ -242,46 +224,57 @@ function Field({
 
 const makeStyles = (colors: ColorPalette) =>
   StyleSheet.create({
-    headerBlock: {
+    backdrop: {
+      flex: 1,
       backgroundColor: colors.primary,
-      borderBottomLeftRadius: radius.lg * 1.4,
-      borderBottomRightRadius: radius.lg * 1.4,
       overflow: 'hidden',
-      alignItems: 'center',
-      paddingTop: 56,
-      paddingBottom: spacing.lg,
-      paddingHorizontal: spacing.lg,
     },
-    headerWatermark: {
+    backdropWatermarkTop: {
       position: 'absolute',
-      right: -20,
-      top: -20,
+      right: -40,
+      top: -30,
     },
     logoCircle: {
-      width: 54,
-      height: 54,
-      borderRadius: 27,
+      alignSelf: 'center',
+      marginTop: 48,
+      marginBottom: spacing.sm,
+      width: 52,
+      height: 52,
+      borderRadius: 26,
       backgroundColor: colors.white,
       alignItems: 'center',
       justifyContent: 'center',
-      marginBottom: spacing.sm,
       ...shadow.card,
     },
+    cardWrap: {
+      flex: 1,
+    },
+    card: {
+      flex: 1,
+      backgroundColor: colors.surface,
+      borderTopLeftRadius: radius.lg * 1.4,
+      borderTopRightRadius: radius.lg * 1.4,
+      marginHorizontal: spacing.md,
+      ...shadow.card,
+      overflow: 'hidden',
+    },
+    cardContent: {
+      padding: spacing.lg,
+      paddingTop: spacing.lg,
+      flexGrow: 1,
+    },
     title: {
-      fontSize: 22,
+      fontSize: 21,
       fontWeight: '700',
-      color: colors.white,
+      color: colors.text,
+      textAlign: 'center',
     },
     subtitle: {
       marginTop: spacing.xs,
       fontSize: 13,
-      color: colors.primaryLight,
+      color: colors.textMuted,
       textAlign: 'center',
-    },
-    form: {
-      paddingHorizontal: spacing.lg,
-      paddingTop: spacing.md,
-      paddingBottom: spacing.xl,
+      marginBottom: spacing.sm,
     },
     row: {
       flexDirection: 'row',
@@ -303,7 +296,7 @@ const makeStyles = (colors: ColorPalette) =>
     inputWrap: {
       flexDirection: 'row',
       alignItems: 'center',
-      backgroundColor: colors.surface,
+      backgroundColor: colors.background,
       borderWidth: 1,
       borderColor: colors.border,
       borderRadius: radius.md,
@@ -353,12 +346,6 @@ const makeStyles = (colors: ColorPalette) =>
       color: colors.primary,
       fontWeight: '700',
     },
-    pdpaModalBody: {
-      marginTop: spacing.sm,
-      fontSize: 13,
-      color: colors.textMuted,
-      lineHeight: 19,
-    },
     error: {
       color: colors.danger,
       marginTop: spacing.md,
@@ -368,6 +355,11 @@ const makeStyles = (colors: ColorPalette) =>
       flexDirection: 'row',
       justifyContent: 'center',
       marginTop: spacing.lg,
+      gap: 4,
+    },
+    footerText: {
+      fontSize: 13,
+      color: colors.textMuted,
     },
     link: {
       color: colors.primary,
