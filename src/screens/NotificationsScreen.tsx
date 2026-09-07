@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -7,6 +7,7 @@ import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme
 import { useThemeColors, useThemeTypography } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import ScreenHeader from '../components/ScreenHeader';
+import AppText from '../components/AppText';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Notifications'>;
 
@@ -44,11 +45,11 @@ export default function NotificationsScreen({ navigation }: Props) {
             </View>
             <View style={{ flex: 1, marginLeft: spacing.md }}>
               <View style={styles.titleRow}>
-                <Text style={typography.h3}>{t(n.titleKey)}</Text>
+                <AppText style={typography.h3}>{t(n.titleKey)}</AppText>
                 {n.unread && <View style={styles.dot} />}
               </View>
-              <Text style={[typography.body, { marginTop: 2 }]}>{t(n.bodyKey)}</Text>
-              <Text style={styles.time}>{t(n.timeKey)}</Text>
+              <AppText style={[typography.body, { marginTop: 2 }]}>{t(n.bodyKey)}</AppText>
+              <AppText style={styles.time}>{t(n.timeKey)}</AppText>
             </View>
           </View>
         ))}

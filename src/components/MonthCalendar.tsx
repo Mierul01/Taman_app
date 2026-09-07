@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { radius, spacing, ColorPalette } from '../theme/theme';
 import { useThemeColors } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
+import AppText from './AppText';
 
 const WEEKDAYS: Record<'ms' | 'en', string[]> = {
   ms: ['Ahd', 'Isn', 'Sel', 'Rab', 'Kha', 'Jum', 'Sab'],
@@ -77,9 +78,9 @@ export default function MonthCalendar({ selectedDate, onSelectDate, markedDates 
         <TouchableOpacity onPress={goPrevMonth} style={styles.navButton} activeOpacity={0.7}>
           <Ionicons name="chevron-back" size={18} color={colors.text} />
         </TouchableOpacity>
-        <Text style={styles.monthLabel}>
+        <AppText style={styles.monthLabel}>
           {MONTH_NAMES[language][viewMonth]} {viewYear}
-        </Text>
+        </AppText>
         <TouchableOpacity onPress={goNextMonth} style={styles.navButton} activeOpacity={0.7}>
           <Ionicons name="chevron-forward" size={18} color={colors.text} />
         </TouchableOpacity>
@@ -87,9 +88,9 @@ export default function MonthCalendar({ selectedDate, onSelectDate, markedDates 
 
       <View style={styles.weekRow}>
         {WEEKDAYS[language].map((w) => (
-          <Text key={w} style={styles.weekdayText}>
+          <AppText key={w} style={styles.weekdayText}>
             {w}
-          </Text>
+          </AppText>
         ))}
       </View>
 
@@ -109,7 +110,7 @@ export default function MonthCalendar({ selectedDate, onSelectDate, markedDates 
               onPress={() => onSelectDate(cell.iso)}
             >
               <View style={[styles.dayCircle, isSelected && styles.dayCircleSelected]}>
-                <Text
+                <AppText
                   style={[
                     styles.dayText,
                     isToday && !isSelected && styles.dayTextToday,
@@ -117,7 +118,7 @@ export default function MonthCalendar({ selectedDate, onSelectDate, markedDates 
                   ]}
                 >
                   {cell.day}
-                </Text>
+                </AppText>
               </View>
               {mark && !isSelected && <View style={[styles.dot, { backgroundColor: mark.color }]} />}
             </TouchableOpacity>

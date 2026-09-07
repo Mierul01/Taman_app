@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme';
@@ -9,6 +9,7 @@ import ScreenHeader from '../components/ScreenHeader';
 import { feeItems, charityItems, totalHouseholds } from '../data/mockData';
 import { useAuth } from '../context/AuthContext';
 import { usePayments, PaymentRecord } from '../context/PaymentContext';
+import AppText from '../components/AppText';
 
 type ItemSummary = {
   id: string;
@@ -49,8 +50,8 @@ function CollectionGroup({
           <Ionicons name={icon} size={20} color={color} />
         </View>
         <View style={{ flex: 1, marginLeft: spacing.sm }}>
-          <Text style={typography.h3}>{title}</Text>
-          <Text style={typography.caption}>{t('collections.totalCollected', { amount: total.toLocaleString() })}</Text>
+          <AppText style={typography.h3}>{title}</AppText>
+          <AppText style={typography.caption}>{t('collections.totalCollected', { amount: total.toLocaleString() })}</AppText>
         </View>
       </View>
       {records.map((r) => {
@@ -58,17 +59,17 @@ function CollectionGroup({
         return (
           <View key={r.id} style={styles.recordRow}>
             <View style={styles.recordTop}>
-              <Text style={styles.recordTitle} numberOfLines={1}>
+              <AppText style={styles.recordTitle} numberOfLines={1}>
                 {r.title}
-              </Text>
-              <Text style={styles.recordAmount}>RM {r.collected.toLocaleString()}</Text>
+              </AppText>
+              <AppText style={styles.recordAmount}>RM {r.collected.toLocaleString()}</AppText>
             </View>
             <View style={styles.progressTrack}>
               <View style={[styles.progressFill, { width: `${pct}%`, backgroundColor: color }]} />
             </View>
-            <Text style={styles.recordMeta}>
+            <AppText style={styles.recordMeta}>
               {t('collections.contributorsLine', { count: r.contributors, total: totalHouseholds })}
-            </Text>
+            </AppText>
           </View>
         );
       })}
@@ -111,13 +112,13 @@ export default function CollectionsScreen() {
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
             <Ionicons name="card" size={20} color="#2E6FD9" />
-            <Text style={styles.statValue}>RM {totalFees.toLocaleString()}</Text>
-            <Text style={styles.statLabel}>{t('collections.totalFees')}</Text>
+            <AppText style={styles.statValue}>RM {totalFees.toLocaleString()}</AppText>
+            <AppText style={styles.statLabel}>{t('collections.totalFees')}</AppText>
           </View>
           <View style={styles.statCard}>
             <Ionicons name="heart" size={20} color="#D9862E" />
-            <Text style={styles.statValue}>RM {totalCharity.toLocaleString()}</Text>
-            <Text style={styles.statLabel}>{t('collections.totalCharity')}</Text>
+            <AppText style={styles.statValue}>RM {totalCharity.toLocaleString()}</AppText>
+            <AppText style={styles.statLabel}>{t('collections.totalCharity')}</AppText>
           </View>
         </View>
 
@@ -128,7 +129,7 @@ export default function CollectionsScreen() {
           </View>
         )}
 
-        <Text style={styles.footnote}>{t('collections.footnote', { total: totalHouseholds })}</Text>
+        <AppText style={styles.footnote}>{t('collections.footnote', { total: totalHouseholds })}</AppText>
       </ScrollView>
     </View>
   );

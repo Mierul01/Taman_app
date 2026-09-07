@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Linking, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -7,6 +7,7 @@ import { radius, shadow, spacing, ColorPalette } from '../theme/theme';
 import { useThemeColors } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { checkForUpdate, UpdateInfo } from '../utils/checkForUpdate';
+import AppText from './AppText';
 
 const DISMISSED_KEY = '@tlamana_update_dismissed_version';
 
@@ -48,15 +49,15 @@ export default function UpdateBanner() {
           <Ionicons name="cloud-download-outline" size={18} color={colors.white} />
         </View>
         <View style={{ flex: 1, marginLeft: spacing.sm }}>
-          <Text style={styles.title}>{t('update.available', { version: info.latestVersion ?? '' })}</Text>
-          <Text style={styles.subtitle}>{t('update.subtitle')}</Text>
+          <AppText style={styles.title}>{t('update.available', { version: info.latestVersion ?? '' })}</AppText>
+          <AppText style={styles.subtitle}>{t('update.subtitle')}</AppText>
         </View>
         <TouchableOpacity style={styles.closeButton} activeOpacity={0.8} onPress={dismiss} hitSlop={8}>
           <Ionicons name="close" size={16} color={colors.textMuted} />
         </TouchableOpacity>
       </View>
       <TouchableOpacity style={styles.downloadButton} activeOpacity={0.85} onPress={download}>
-        <Text style={styles.downloadButtonText}>{t('update.download')}</Text>
+        <AppText style={styles.downloadButtonText}>{t('update.download')}</AppText>
       </TouchableOpacity>
     </View>
   );

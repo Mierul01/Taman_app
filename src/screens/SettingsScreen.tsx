@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Switch, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -10,6 +10,7 @@ import ScreenHeader from '../components/ScreenHeader';
 import Button from '../components/Button';
 import AppModal from '../components/AppModal';
 import { useAuth } from '../context/AuthContext';
+import AppText from '../components/AppText';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Settings'>;
 
@@ -42,33 +43,33 @@ export default function SettingsScreen({ navigation }: Props) {
       <ScreenHeader title={t('settings.title')} subtitle={t('settings.subtitle')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.md }}>
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>{t('settings.language')}</Text>
+          <AppText style={styles.sectionLabel}>{t('settings.language')}</AppText>
           <View style={styles.chipRow}>
             <TouchableOpacity
               style={[styles.chip, language === 'ms' && styles.chipActive]}
               onPress={() => setLanguage('ms')}
             >
-              <Text style={[styles.chipText, language === 'ms' && styles.chipTextActive]}>
+              <AppText style={[styles.chipText, language === 'ms' && styles.chipTextActive]}>
                 {t('settings.languageMalay')}
-              </Text>
+              </AppText>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.chip, language === 'en' && styles.chipActive]}
               onPress={() => setLanguage('en')}
             >
-              <Text style={[styles.chipText, language === 'en' && styles.chipTextActive]}>
+              <AppText style={[styles.chipText, language === 'en' && styles.chipTextActive]}>
                 {t('settings.languageEnglish')}
-              </Text>
+              </AppText>
             </TouchableOpacity>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>{t('settings.display')}</Text>
+          <AppText style={styles.sectionLabel}>{t('settings.display')}</AppText>
           <View style={styles.row}>
             <View style={styles.rowLeft}>
               <Ionicons name="moon-outline" size={18} color={colors.text} />
-              <Text style={styles.rowText}>{t('settings.darkMode')}</Text>
+              <AppText style={styles.rowText}>{t('settings.darkMode')}</AppText>
             </View>
             <Switch
               value={isDarkMode}
@@ -80,7 +81,7 @@ export default function SettingsScreen({ navigation }: Props) {
           <View style={styles.row}>
             <View style={styles.rowLeft}>
               <Ionicons name="notifications-outline" size={18} color={colors.text} />
-              <Text style={styles.rowText}>{t('settings.pushNotifications')}</Text>
+              <AppText style={styles.rowText}>{t('settings.pushNotifications')}</AppText>
             </View>
             <Switch
               value={notifEnabled}
@@ -91,11 +92,11 @@ export default function SettingsScreen({ navigation }: Props) {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>{t('settings.account')}</Text>
+          <AppText style={styles.sectionLabel}>{t('settings.account')}</AppText>
           <TouchableOpacity style={styles.row} onPress={() => navigation.navigate('ProfileEdit')}>
             <View style={styles.rowLeft}>
               <Ionicons name="person-outline" size={18} color={colors.text} />
-              <Text style={styles.rowText}>{t('profile.updateProfile')}</Text>
+              <AppText style={styles.rowText}>{t('profile.updateProfile')}</AppText>
             </View>
             <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
           </TouchableOpacity>
@@ -103,34 +104,34 @@ export default function SettingsScreen({ navigation }: Props) {
           <TouchableOpacity style={styles.row} onPress={() => setConfirmLogout(true)}>
             <View style={styles.rowLeft}>
               <Ionicons name="log-out-outline" size={18} color={colors.text} />
-              <Text style={styles.rowText}>{t('profile.logOut')}</Text>
+              <AppText style={styles.rowText}>{t('profile.logOut')}</AppText>
             </View>
             <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionLabel}>{t('settings.about')}</Text>
+          <AppText style={styles.sectionLabel}>{t('settings.about')}</AppText>
           <View style={styles.row}>
             <View style={styles.rowLeft}>
               <Ionicons name="information-circle-outline" size={18} color={colors.text} />
-              <Text style={styles.rowText}>{t('settings.appVersion')}</Text>
+              <AppText style={styles.rowText}>{t('settings.appVersion')}</AppText>
             </View>
-            <Text style={typography.caption}>1.0.0</Text>
+            <AppText style={typography.caption}>1.0.0</AppText>
           </View>
         </View>
 
         <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: colors.danger }]}>{t('settings.dangerZone')}</Text>
+          <AppText style={[styles.sectionLabel, { color: colors.danger }]}>{t('settings.dangerZone')}</AppText>
           <Button label={t('settings.deleteAccount')} variant="danger" onPress={() => setConfirmDelete(true)} />
         </View>
       </ScrollView>
 
       <AppModal visible={confirmLogout} onClose={() => setConfirmLogout(false)}>
-        <Text style={[typography.h3, { textAlign: 'center' }]}>{t('profile.logOutConfirmTitle')}</Text>
-        <Text style={[typography.caption, { textAlign: 'center', marginTop: spacing.xs }]}>
+        <AppText style={[typography.h3, { textAlign: 'center' }]}>{t('profile.logOutConfirmTitle')}</AppText>
+        <AppText style={[typography.caption, { textAlign: 'center', marginTop: spacing.xs }]}>
           {t('profile.logOutConfirmBody')}
-        </Text>
+        </AppText>
         <View style={styles.modalActions}>
           <Button label={t('common.cancel')} variant="ghost" onPress={() => setConfirmLogout(false)} style={{ flex: 1 }} />
           <Button label={t('profile.logOut')} variant="danger" onPress={handleLogout} style={{ flex: 1 }} />
@@ -141,12 +142,12 @@ export default function SettingsScreen({ navigation }: Props) {
         <View style={styles.warnIcon}>
           <Ionicons name="warning" size={26} color={colors.white} />
         </View>
-        <Text style={[typography.h3, { textAlign: 'center', marginTop: spacing.md }]}>
+        <AppText style={[typography.h3, { textAlign: 'center', marginTop: spacing.md }]}>
           {t('settings.deleteConfirmTitle')}
-        </Text>
-        <Text style={[typography.caption, { textAlign: 'center', marginTop: spacing.xs }]}>
+        </AppText>
+        <AppText style={[typography.caption, { textAlign: 'center', marginTop: spacing.xs }]}>
           {t('settings.deleteConfirmBody')}
-        </Text>
+        </AppText>
         <View style={styles.modalActions}>
           <Button label={t('common.cancel')} variant="ghost" onPress={() => setConfirmDelete(false)} style={{ flex: 1 }} />
           <Button label={t('settings.deleteAccount')} variant="danger" onPress={handleDelete} loading={deleting} style={{ flex: 1 }} />

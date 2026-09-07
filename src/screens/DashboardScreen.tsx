@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
@@ -12,6 +12,7 @@ import { useAuth } from '../context/AuthContext';
 import { Program, emergencyContacts } from '../data/mockData';
 import { getAllPrograms } from '../data/programsStore';
 import HighlightCarousel from '../components/HighlightCarousel';
+import AppText from '../components/AppText';
 
 type Props = BottomTabScreenProps<MainTabParamList, 'Dashboard'>;
 
@@ -67,7 +68,7 @@ export default function DashboardScreen({ navigation }: Props) {
             <View style={styles.topBarLogo}>
               <Ionicons name="leaf" size={16} color={colors.white} />
             </View>
-            <Text style={styles.topBarTitle}>{t('common.appName').toUpperCase()}</Text>
+            <AppText style={styles.topBarTitle}>{t('common.appName').toUpperCase()}</AppText>
           </View>
           <View style={styles.topBarActions}>
             <TouchableOpacity
@@ -90,13 +91,13 @@ export default function DashboardScreen({ navigation }: Props) {
 
         <View style={styles.header}>
           <View style={styles.headerTextWrap}>
-            <Text style={styles.greetingCaption}>{t('dashboard.welcome')}</Text>
-            <Text style={styles.greetingName} numberOfLines={1} ellipsizeMode="tail">
+            <AppText style={styles.greetingCaption}>{t('dashboard.welcome')}</AppText>
+            <AppText style={styles.greetingName} numberOfLines={1} ellipsizeMode="tail">
               {user?.name ?? t('role.resident')}
-            </Text>
-            <Text style={styles.greetingSubtitle} numberOfLines={1}>
+            </AppText>
+            <AppText style={styles.greetingSubtitle} numberOfLines={1}>
               {user?.parkName}
-            </Text>
+            </AppText>
           </View>
           <TouchableOpacity
             style={styles.avatar}
@@ -108,7 +109,7 @@ export default function DashboardScreen({ navigation }: Props) {
         </View>
       </View>
 
-      <Text style={styles.sectionTitle}>{t('dashboard.mainMenu')}</Text>
+      <AppText style={styles.sectionTitle}>{t('dashboard.mainMenu')}</AppText>
       <View style={styles.grid}>
         {menuItems.map((item) => (
           <TouchableOpacity
@@ -120,16 +121,16 @@ export default function DashboardScreen({ navigation }: Props) {
             <View style={[styles.menuIcon, { backgroundColor: withAlpha(item.color, 0.12) }]}>
               <Ionicons name={item.icon} size={24} color={item.color} />
             </View>
-            <Text style={styles.menuLabel}>{t(item.labelKey)}</Text>
+            <AppText style={styles.menuLabel}>{t(item.labelKey)}</AppText>
           </TouchableOpacity>
         ))}
       </View>
 
       <View style={styles.sectionRow}>
-        <Text style={styles.sectionTitle}>{t('dashboard.upcomingPrograms')}</Text>
-        <Text style={styles.linkText} onPress={() => navigation.navigate('Programs')}>
+        <AppText style={styles.sectionTitle}>{t('dashboard.upcomingPrograms')}</AppText>
+        <AppText style={styles.linkText} onPress={() => navigation.navigate('Programs')}>
           {t('dashboard.viewAll')}
-        </Text>
+        </AppText>
       </View>
       {upcoming.length > 0 ? (
         <HighlightCarousel
@@ -138,21 +139,21 @@ export default function DashboardScreen({ navigation }: Props) {
         />
       ) : (
         <View style={styles.upcomingCard}>
-          <Text style={typography.caption}>{t('dashboard.noUpcoming')}</Text>
+          <AppText style={typography.caption}>{t('dashboard.noUpcoming')}</AppText>
         </View>
       )}
 
-      <Text style={styles.sectionTitle}>{t('dashboard.emergencyContacts')}</Text>
+      <AppText style={styles.sectionTitle}>{t('dashboard.emergencyContacts')}</AppText>
       <View style={styles.emergencyRow}>
         {emergencyPreview.map((c) => (
           <View key={c.id} style={styles.emergencyCard}>
             <View style={styles.emergencyIconWrap}>
               <Ionicons name="call" size={16} color={colors.danger} />
             </View>
-            <Text style={styles.emergencyRole} numberOfLines={1}>
+            <AppText style={styles.emergencyRole} numberOfLines={1}>
               {t(`emergencyContact.${c.id}Role`)}
-            </Text>
-            <Text style={styles.emergencyPhone}>{c.phone}</Text>
+            </AppText>
+            <AppText style={styles.emergencyPhone}>{c.phone}</AppText>
           </View>
         ))}
       </View>

@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { spacing, ColorPalette } from '../theme/theme';
 import { useThemeColors } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
+import AppText from './AppText';
 
 export function getPasswordChecks(password: string) {
   return {
@@ -42,7 +43,7 @@ export default function PasswordStrengthChecklist({ password }: { password: stri
               size={14}
               color={ok ? colors.primary : colors.textMuted}
             />
-            <Text style={[styles.label, ok && { color: colors.primary, fontWeight: '600' }]}>{item.label}</Text>
+            <AppText style={[styles.label, ok && { color: colors.primary, fontWeight: '600' }]}>{item.label}</AppText>
           </View>
         );
       })}
@@ -65,9 +66,9 @@ export function PasswordMatchIndicator({ password, confirmPassword }: { password
         size={14}
         color={matches ? colors.primary : colors.danger}
       />
-      <Text style={[styles.label, { color: matches ? colors.primary : colors.danger, fontWeight: '600' }]}>
+      <AppText style={[styles.label, { color: matches ? colors.primary : colors.danger, fontWeight: '600' }]}>
         {matches ? t('register.passwordsMatch') : t('register.passwordsNoMatch')}
-      </Text>
+      </AppText>
     </View>
   );
 }

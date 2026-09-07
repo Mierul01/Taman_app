@@ -1,14 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import {
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -17,6 +8,7 @@ import { useThemeColors } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
+import AppText from '../components/AppText';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -62,10 +54,10 @@ export default function LoginScreen({ navigation }: Props) {
         <View style={styles.card}>
           <View style={styles.cardHandle} />
           <ScrollView contentContainerStyle={styles.cardContent} keyboardShouldPersistTaps="handled">
-            <Text style={styles.title}>{t('login.title')}</Text>
-            <Text style={styles.subtitle}>{t('login.subtitle', { appName: t('common.appName') })}</Text>
+            <AppText style={styles.title}>{t('login.title')}</AppText>
+            <AppText style={styles.subtitle}>{t('login.subtitle', { appName: t('common.appName') })}</AppText>
 
-            <Text style={styles.fieldLabel}>{t('common.email')}</Text>
+            <AppText style={styles.fieldLabel}>{t('common.email')}</AppText>
             <View style={styles.inputWrap}>
               <View style={styles.inputIconWrap}>
                 <Ionicons name="mail-outline" size={16} color={colors.primary} />
@@ -81,7 +73,7 @@ export default function LoginScreen({ navigation }: Props) {
               />
             </View>
 
-            <Text style={styles.fieldLabel}>{t('login.passwordLabel')}</Text>
+            <AppText style={styles.fieldLabel}>{t('login.passwordLabel')}</AppText>
             <View style={styles.inputWrap}>
               <View style={styles.inputIconWrap}>
                 <Ionicons name="lock-closed-outline" size={16} color={colors.primary} />
@@ -104,10 +96,10 @@ export default function LoginScreen({ navigation }: Props) {
 
             <TouchableOpacity style={styles.rememberRow} activeOpacity={0.75} onPress={() => setRememberMe((v) => !v)}>
               <Ionicons name={rememberMe ? 'checkbox' : 'square-outline'} size={19} color={colors.primary} />
-              <Text style={styles.rememberText}>{t('login.rememberMe')}</Text>
+              <AppText style={styles.rememberText}>{t('login.rememberMe')}</AppText>
             </TouchableOpacity>
 
-            {error ? <Text style={styles.error}>{error}</Text> : null}
+            {error ? <AppText style={styles.error}>{error}</AppText> : null}
 
             <Button
               label={t('login.submit')}
@@ -117,10 +109,10 @@ export default function LoginScreen({ navigation }: Props) {
             />
 
             <View style={styles.footerRow}>
-              <Text style={styles.footerText}>{t('login.noAccount')}</Text>
-              <Text style={styles.link} onPress={() => navigation.navigate('Register')}>
+              <AppText style={styles.footerText}>{t('login.noAccount')}</AppText>
+              <AppText style={styles.link} onPress={() => navigation.navigate('Register')}>
                 {t('login.registerLink')}
-              </Text>
+              </AppText>
             </View>
           </ScrollView>
         </View>

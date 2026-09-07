@@ -1,9 +1,10 @@
 import React, { useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View, ViewStyle } from 'react-native';
+import { FlatList, StyleSheet, TouchableOpacity, View, ViewStyle } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import AppModal from './AppModal';
 import { radius, spacing, withAlpha, ColorPalette } from '../theme/theme';
 import { useThemeColors } from '../context/ThemeContext';
+import AppText from './AppText';
 
 export type SelectOption = string | { label: string; disabled?: boolean; isHeader?: boolean };
 
@@ -41,7 +42,7 @@ export default function SelectField({ label, icon, value, options, placeholder, 
 
   return (
     <View style={style}>
-      <Text style={styles.fieldLabel}>{label}</Text>
+      <AppText style={styles.fieldLabel}>{label}</AppText>
       <TouchableOpacity
         style={[styles.inputWrap, disabled && styles.inputWrapDisabled]}
         activeOpacity={disabled ? 1 : 0.75}
@@ -50,14 +51,14 @@ export default function SelectField({ label, icon, value, options, placeholder, 
         <View style={styles.inputIconWrap}>
           <Ionicons name={icon} size={15} color={colors.primary} />
         </View>
-        <Text style={[styles.value, !value && styles.placeholder]} numberOfLines={1}>
+        <AppText style={[styles.value, !value && styles.placeholder]} numberOfLines={1}>
           {value || placeholder}
-        </Text>
+        </AppText>
         <Ionicons name="chevron-down" size={16} color={colors.textMuted} />
       </TouchableOpacity>
 
       <AppModal visible={open} onClose={() => setOpen(false)}>
-        <Text style={styles.modalTitle}>{label}</Text>
+        <AppText style={styles.modalTitle}>{label}</AppText>
         <FlatList
           data={normalized}
           keyExtractor={(item) => item.key}
@@ -65,7 +66,7 @@ export default function SelectField({ label, icon, value, options, placeholder, 
           showsVerticalScrollIndicator={false}
           renderItem={({ item }) =>
             item.isHeader ? (
-              <Text style={styles.sectionHeader}>{item.label}</Text>
+              <AppText style={styles.sectionHeader}>{item.label}</AppText>
             ) : (
               <TouchableOpacity
                 style={[styles.option, item.disabled && styles.optionDisabled]}
@@ -76,7 +77,7 @@ export default function SelectField({ label, icon, value, options, placeholder, 
                   setOpen(false);
                 }}
               >
-                <Text
+                <AppText
                   style={[
                     styles.optionText,
                     item.label === value && styles.optionTextSelected,
@@ -84,7 +85,7 @@ export default function SelectField({ label, icon, value, options, placeholder, 
                   ]}
                 >
                   {item.label}
-                </Text>
+                </AppText>
                 {item.disabled ? (
                   <Ionicons name="lock-closed" size={14} color={colors.textMuted} />
                 ) : item.label === value ? (

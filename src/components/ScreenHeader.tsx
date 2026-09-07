@@ -1,9 +1,10 @@
 import React, { useMemo } from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { radius, spacing, ColorPalette } from '../theme/theme';
 import { useThemeColors } from '../context/ThemeContext';
+import AppText from './AppText';
 
 export default function ScreenHeader({
   title,
@@ -25,8 +26,8 @@ export default function ScreenHeader({
           <Ionicons name="arrow-back" size={20} color={colors.white} />
         </TouchableOpacity>
       )}
-      <Text style={styles.title}>{title}</Text>
-      {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
+      <AppText style={styles.title}>{title}</AppText>
+      {subtitle ? <AppText style={styles.subtitle}>{subtitle}</AppText> : null}
     </View>
   );
 }

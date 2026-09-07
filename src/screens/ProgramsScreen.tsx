@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme';
@@ -11,6 +11,7 @@ import Button from '../components/Button';
 import { Program, categoryColors as categoryColor } from '../data/mockData';
 import { getAllPrograms } from '../data/programsStore';
 import { useAuth } from '../context/AuthContext';
+import AppText from '../components/AppText';
 
 function todayISO() {
   return new Date().toISOString().slice(0, 10);
@@ -85,25 +86,25 @@ export default function ProgramsScreen() {
         )}
 
         <View style={styles.sectionRow}>
-          <Text style={styles.sectionTitle}>{listTitle}</Text>
+          <AppText style={styles.sectionTitle}>{listTitle}</AppText>
           {listPrograms.length > 0 && (
             <View style={styles.countBadge}>
-              <Text style={styles.countBadgeText}>{listPrograms.length}</Text>
+              <AppText style={styles.countBadgeText}>{listPrograms.length}</AppText>
             </View>
           )}
         </View>
         {!isDefaultView && (
-          <Text style={styles.resetLink} onPress={() => setSelectedDate(null)}>
+          <AppText style={styles.resetLink} onPress={() => setSelectedDate(null)}>
             {t('programs.backToUpcoming')}
-          </Text>
+          </AppText>
         )}
 
         {listPrograms.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="calendar-outline" size={32} color={colors.textMuted} />
-            <Text style={styles.emptyText}>
+            <AppText style={styles.emptyText}>
               {isDefaultView ? t('programs.noUpcoming') : t('programs.noneOnDate')}
-            </Text>
+            </AppText>
           </View>
         ) : (
           <View style={{ paddingHorizontal: spacing.lg, gap: spacing.md }}>
@@ -116,17 +117,17 @@ export default function ProgramsScreen() {
               >
                 <View style={styles.rowTop}>
                   <View style={[styles.badge, { backgroundColor: categoryColor[item.category] }]}>
-                    <Text style={styles.badgeText}>{t(`category.${item.category}`)}</Text>
+                    <AppText style={styles.badgeText}>{t(`category.${item.category}`)}</AppText>
                   </View>
-                  <Text style={typography.caption}>{item.date}</Text>
+                  <AppText style={typography.caption}>{item.date}</AppText>
                 </View>
-                <Text style={[typography.h3, { marginTop: spacing.sm }]}>{item.title}</Text>
-                <Text style={[typography.body, styles.desc]} numberOfLines={2}>
+                <AppText style={[typography.h3, { marginTop: spacing.sm }]}>{item.title}</AppText>
+                <AppText style={[typography.body, styles.desc]} numberOfLines={2}>
                   {item.description}
-                </Text>
+                </AppText>
                 <View style={styles.locationRow}>
                   <Ionicons name="location-outline" size={15} color={colors.textMuted} />
-                  <Text style={typography.caption}>{item.location}</Text>
+                  <AppText style={typography.caption}>{item.location}</AppText>
                   <Ionicons name="chevron-forward" size={15} color={colors.textMuted} style={{ marginLeft: 'auto' }} />
                 </View>
               </TouchableOpacity>

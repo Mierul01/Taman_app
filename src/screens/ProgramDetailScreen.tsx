@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -9,6 +9,7 @@ import { useLanguage } from '../context/LanguageContext';
 import ScreenHeader from '../components/ScreenHeader';
 import { getAllPrograms } from '../data/programsStore';
 import { Program, categoryColors as categoryColor } from '../data/mockData';
+import AppText from '../components/AppText';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProgramDetail'>;
 
@@ -48,26 +49,26 @@ export default function ProgramDetailScreen({ route, navigation }: Props) {
       <ScrollView contentContainerStyle={{ padding: spacing.lg }}>
         <View style={styles.card}>
           <View style={[styles.badge, { backgroundColor: categoryColor[program.category] }]}>
-            <Text style={styles.badgeText}>{t(`category.${program.category}`)}</Text>
+            <AppText style={styles.badgeText}>{t(`category.${program.category}`)}</AppText>
           </View>
-          <Text style={[typography.h2, { marginTop: spacing.md }]}>{program.title}</Text>
+          <AppText style={[typography.h2, { marginTop: spacing.md }]}>{program.title}</AppText>
 
           <View style={styles.detailRow}>
             <Ionicons name="calendar-outline" size={18} color={colors.textMuted} />
-            <Text style={styles.detailText}>{program.date}</Text>
+            <AppText style={styles.detailText}>{program.date}</AppText>
           </View>
           <View style={styles.detailRow}>
             <Ionicons name="location-outline" size={18} color={colors.textMuted} />
-            <Text style={styles.detailText}>{program.location}</Text>
+            <AppText style={styles.detailText}>{program.location}</AppText>
           </View>
           {program.parkName ? (
             <View style={styles.detailRow}>
               <Ionicons name="business-outline" size={18} color={colors.textMuted} />
-              <Text style={styles.detailText}>{program.parkName}</Text>
+              <AppText style={styles.detailText}>{program.parkName}</AppText>
             </View>
           ) : null}
 
-          <Text style={styles.description}>{program.description}</Text>
+          <AppText style={styles.description}>{program.description}</AppText>
         </View>
       </ScrollView>
     </View>

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -7,6 +7,7 @@ import { radius, spacing, withAlpha, ColorPalette } from '../theme/theme';
 import { useThemeColors } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import ScreenHeader from '../components/ScreenHeader';
+import AppText from '../components/AppText';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'PdpaNotice'>;
 
@@ -25,13 +26,13 @@ export default function PdpaNoticeScreen({ navigation }: Props) {
           <View style={styles.introIconWrap}>
             <Ionicons name="shield-checkmark-outline" size={20} color={colors.primary} />
           </View>
-          <Text style={styles.introText}>{t('pdpa.intro')}</Text>
+          <AppText style={styles.introText}>{t('pdpa.intro')}</AppText>
         </View>
 
         {SECTION_KEYS.map((key) => (
           <View key={key} style={styles.section}>
-            <Text style={styles.sectionTitle}>{t(`pdpa.${key}Title`)}</Text>
-            <Text style={styles.sectionBody}>{t(`pdpa.${key}Body`)}</Text>
+            <AppText style={styles.sectionTitle}>{t(`pdpa.${key}Title`)}</AppText>
+            <AppText style={styles.sectionBody}>{t(`pdpa.${key}Body`)}</AppText>
           </View>
         ))}
       </ScrollView>

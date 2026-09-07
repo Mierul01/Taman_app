@@ -1,11 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Modal, Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme';
 import { useThemeColors } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import type { MainTabParamList } from './types';
+import AppText from '../components/AppText';
 
 const PRIMARY_ROUTE_NAMES: (keyof MainTabParamList)[] = ['Dashboard', 'Payments', 'Committee', 'Profile'];
 
@@ -65,9 +66,9 @@ export default function CustomTabBar({ state, navigation, insets }: BottomTabBar
                   size={22}
                   color={focused ? colors.primary : colors.textMuted}
                 />
-                <Text style={[styles.tabLabel, { color: focused ? colors.primary : colors.textMuted }]} numberOfLines={1}>
+                <AppText style={[styles.tabLabel, { color: focused ? colors.primary : colors.textMuted }]} numberOfLines={1}>
                   {t(labelKeys[route.name])}
-                </Text>
+                </AppText>
               </TouchableOpacity>
               {idx === 1 && overflowRoutes.length > 0 && (
                 <View style={styles.centerSlot}>
@@ -78,7 +79,7 @@ export default function CustomTabBar({ state, navigation, insets }: BottomTabBar
                   >
                     <Ionicons name="add" size={26} color={colors.white} />
                   </TouchableOpacity>
-                  <Text
+                  <AppText
                     style={[
                       styles.tabLabel,
                       styles.centerLabel,
@@ -87,7 +88,7 @@ export default function CustomTabBar({ state, navigation, insets }: BottomTabBar
                     numberOfLines={1}
                   >
                     {t('dashboard.tabMore')}
-                  </Text>
+                  </AppText>
                 </View>
               )}
             </React.Fragment>
@@ -100,7 +101,7 @@ export default function CustomTabBar({ state, navigation, insets }: BottomTabBar
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setMoreOpen(false)} />
           <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing.lg }]}>
             <View style={styles.sheetHandle} />
-            <Text style={styles.sheetTitle}>{t('dashboard.moreMenuTitle')}</Text>
+            <AppText style={styles.sheetTitle}>{t('dashboard.moreMenuTitle')}</AppText>
             {overflowRoutes.map((route) => {
               const focused = focusedRoute.key === route.key;
               return (
@@ -113,7 +114,7 @@ export default function CustomTabBar({ state, navigation, insets }: BottomTabBar
                   <View style={[styles.sheetIconWrap, focused && { backgroundColor: withAlpha(colors.primary, 0.15) }]}>
                     <Ionicons name={icons[route.name]} size={20} color={focused ? colors.primary : colors.text} />
                   </View>
-                  <Text style={styles.sheetItemLabel}>{t(labelKeys[route.name])}</Text>
+                  <AppText style={styles.sheetItemLabel}>{t(labelKeys[route.name])}</AppText>
                   <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
                 </TouchableOpacity>
               );

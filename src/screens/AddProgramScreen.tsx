@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -12,6 +12,7 @@ import Button from '../components/Button';
 import { addProgram } from '../data/programsStore';
 import { useAuth } from '../context/AuthContext';
 import { pickBannerImage } from '../utils/avatarPicker';
+import AppText from '../components/AppText';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AddProgram'>;
 
@@ -83,7 +84,7 @@ export default function AddProgramScreen({ navigation }: Props) {
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScreenHeader title={t('addProgram.title')} subtitle={t('addProgram.subtitle')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={{ padding: spacing.lg }}>
-        <Text style={styles.fieldLabel}>{t('addProgram.photo')}</Text>
+        <AppText style={styles.fieldLabel}>{t('addProgram.photo')}</AppText>
         <TouchableOpacity
           style={styles.imagePicker}
           activeOpacity={0.8}
@@ -95,7 +96,7 @@ export default function AddProgramScreen({ navigation }: Props) {
           ) : (
             <View style={styles.imagePlaceholder}>
               <Ionicons name="image-outline" size={26} color={colors.primary} />
-              <Text style={styles.imagePlaceholderText}>{t('addProgram.addPhoto')}</Text>
+              <AppText style={styles.imagePlaceholderText}>{t('addProgram.addPhoto')}</AppText>
             </View>
           )}
           {imageUri && (
@@ -105,7 +106,7 @@ export default function AddProgramScreen({ navigation }: Props) {
           )}
         </TouchableOpacity>
 
-        <Text style={styles.fieldLabel}>{t('addProgram.programTitle')}</Text>
+        <AppText style={styles.fieldLabel}>{t('addProgram.programTitle')}</AppText>
         <TextInput
           value={title}
           onChangeText={setTitle}
@@ -114,7 +115,7 @@ export default function AddProgramScreen({ navigation }: Props) {
           style={styles.input}
         />
 
-        <Text style={styles.fieldLabel}>{t('addProgram.date')}</Text>
+        <AppText style={styles.fieldLabel}>{t('addProgram.date')}</AppText>
         <TextInput
           value={dateISO}
           onChangeText={setDateISO}
@@ -123,7 +124,7 @@ export default function AddProgramScreen({ navigation }: Props) {
           style={styles.input}
         />
 
-        <Text style={styles.fieldLabel}>{t('addProgram.category')}</Text>
+        <AppText style={styles.fieldLabel}>{t('addProgram.category')}</AppText>
         <View style={styles.chipRow}>
           {CATEGORIES.map((c) => (
             <TouchableOpacity
@@ -131,12 +132,12 @@ export default function AddProgramScreen({ navigation }: Props) {
               style={[styles.chip, category === c && styles.chipActive]}
               onPress={() => setCategory(c)}
             >
-              <Text style={[styles.chipText, category === c && styles.chipTextActive]}>{t(`category.${c}`)}</Text>
+              <AppText style={[styles.chipText, category === c && styles.chipTextActive]}>{t(`category.${c}`)}</AppText>
             </TouchableOpacity>
           ))}
         </View>
 
-        <Text style={styles.fieldLabel}>{t('addProgram.location')}</Text>
+        <AppText style={styles.fieldLabel}>{t('addProgram.location')}</AppText>
         <TextInput
           value={location}
           onChangeText={setLocation}
@@ -145,7 +146,7 @@ export default function AddProgramScreen({ navigation }: Props) {
           style={styles.input}
         />
 
-        <Text style={styles.fieldLabel}>{t('addProgram.description')}</Text>
+        <AppText style={styles.fieldLabel}>{t('addProgram.description')}</AppText>
         <TextInput
           value={description}
           onChangeText={setDescription}
@@ -156,7 +157,7 @@ export default function AddProgramScreen({ navigation }: Props) {
           numberOfLines={4}
         />
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+        {error ? <AppText style={styles.error}>{error}</AppText> : null}
 
         <Button label={t('addProgram.submit')} onPress={handleSave} loading={saving} style={{ marginTop: spacing.lg }} />
       </ScrollView>

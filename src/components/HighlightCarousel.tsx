@@ -1,10 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
+import { Image, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { radius, spacing, withAlpha, ColorPalette } from '../theme/theme';
 import { useThemeColors } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Program, categoryColors, categoryIcons } from '../data/mockData';
+import AppText from './AppText';
 
 const AUTO_ADVANCE_MS = 4500;
 const SIDE_MARGIN = spacing.lg;
@@ -90,22 +91,22 @@ export default function HighlightCarousel({
                 />
               )}
               <View style={styles.slideBadge}>
-                <Text style={styles.slideBadgeText}>{t(`category.${program.category}`)}</Text>
+                <AppText style={styles.slideBadgeText}>{t(`category.${program.category}`)}</AppText>
               </View>
-              <Text style={styles.slideTitle} numberOfLines={2}>
+              <AppText style={styles.slideTitle} numberOfLines={2}>
                 {program.title}
-              </Text>
+              </AppText>
               <View style={styles.slideMetaRow}>
                 <Ionicons name="calendar-outline" size={13} color={withAlpha('#FFFFFF', 0.85)} />
-                <Text style={styles.slideMetaText} numberOfLines={1}>
+                <AppText style={styles.slideMetaText} numberOfLines={1}>
                   {program.date}
-                </Text>
+                </AppText>
               </View>
               <View style={styles.slideMetaRow}>
                 <Ionicons name="location-outline" size={13} color={withAlpha('#FFFFFF', 0.85)} />
-                <Text style={styles.slideMetaText} numberOfLines={1}>
+                <AppText style={styles.slideMetaText} numberOfLines={1}>
                   {program.location}
-                </Text>
+                </AppText>
               </View>
             </TouchableOpacity>
           );

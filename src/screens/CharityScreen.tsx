@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme';
@@ -12,6 +12,7 @@ import PaymentDetailsModal from '../components/PaymentDetailsModal';
 import { charityItems, CharityItem } from '../data/mockData';
 import { useAuth } from '../context/AuthContext';
 import { usePayments } from '../context/PaymentContext';
+import AppText from '../components/AppText';
 
 export default function CharityScreen() {
   const colors = useThemeColors();
@@ -69,16 +70,16 @@ export default function CharityScreen() {
       {isDependent && (
         <View style={styles.dependentBanner}>
           <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
-          <Text style={styles.dependentBannerText}>
+          <AppText style={styles.dependentBannerText}>
             {t('charity.dependentBanner', { guardian: user?.dependentOf ?? '' })}
-          </Text>
+          </AppText>
         </View>
       )}
 
       {canManageAccount && (
         <TouchableOpacity style={styles.manageLink} onPress={() => navigation.navigate('BankAccountSettings')}>
           <Ionicons name="settings-outline" size={15} color={colors.primary} />
-          <Text style={styles.manageLinkText}>{t('charity.manageBank')}</Text>
+          <AppText style={styles.manageLinkText}>{t('charity.manageBank')}</AppText>
         </TouchableOpacity>
       )}
 
@@ -94,14 +95,14 @@ export default function CharityScreen() {
                 <Ionicons name="heart" size={20} color={colors.white} />
               </View>
               <View style={{ flex: 1, marginLeft: spacing.md }}>
-                <Text style={typography.h3}>{item.title}</Text>
-                <Text style={[typography.caption, { marginTop: 2 }]} numberOfLines={2}>
+                <AppText style={typography.h3}>{item.title}</AppText>
+                <AppText style={[typography.caption, { marginTop: 2 }]} numberOfLines={2}>
                   {item.description}
-                </Text>
+                </AppText>
                 {contributed > 0 && (
-                  <Text style={styles.contributedText}>
+                  <AppText style={styles.contributedText}>
                     {t('charity.contributed', { amount: contributed.toFixed(2) })}
-                  </Text>
+                  </AppText>
                 )}
                 {!isDependent && (
                   <Button
@@ -119,10 +120,10 @@ export default function CharityScreen() {
 
       {selected && (
         <AppModal visible={!showDetails} onClose={closeAmountModal}>
-          <Text style={typography.h3}>{selected.title}</Text>
-          <Text style={[typography.caption, { marginTop: spacing.xs }]}>{t('charity.enterAmount')}</Text>
+          <AppText style={typography.h3}>{selected.title}</AppText>
+          <AppText style={[typography.caption, { marginTop: spacing.xs }]}>{t('charity.enterAmount')}</AppText>
           <View style={styles.amountWrap}>
-            <Text style={styles.currencyPrefix}>RM</Text>
+            <AppText style={styles.currencyPrefix}>RM</AppText>
             <TextInput value={amount} onChangeText={setAmount} keyboardType="numeric" style={styles.amountInput} />
           </View>
           <View style={styles.modalActions}>

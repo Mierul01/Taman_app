@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ScrollView, StyleSheet, TextInput, View } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
 import { radius, spacing, ColorPalette } from '../theme/theme';
@@ -9,6 +9,7 @@ import ScreenHeader from '../components/ScreenHeader';
 import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
 import { usePayments } from '../context/PaymentContext';
+import AppText from '../components/AppText';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'BankAccountSettings'>;
 
@@ -60,7 +61,7 @@ export default function BankAccountSettingsScreen({ navigation }: Props) {
         onBack={() => navigation.goBack()}
       />
       <ScrollView contentContainerStyle={{ padding: spacing.lg }}>
-        <Text style={styles.fieldLabel}>{t('bankAccount.bankName')}</Text>
+        <AppText style={styles.fieldLabel}>{t('bankAccount.bankName')}</AppText>
         <TextInput
           value={bankName}
           onChangeText={setBankName}
@@ -69,7 +70,7 @@ export default function BankAccountSettingsScreen({ navigation }: Props) {
           style={styles.input}
         />
 
-        <Text style={styles.fieldLabel}>{t('paymentModal.accountNumber')}</Text>
+        <AppText style={styles.fieldLabel}>{t('paymentModal.accountNumber')}</AppText>
         <TextInput
           value={accountNumber}
           onChangeText={setAccountNumber}
@@ -79,7 +80,7 @@ export default function BankAccountSettingsScreen({ navigation }: Props) {
           keyboardType="number-pad"
         />
 
-        <Text style={styles.fieldLabel}>{t('bankAccount.accountHolder')}</Text>
+        <AppText style={styles.fieldLabel}>{t('bankAccount.accountHolder')}</AppText>
         <TextInput
           value={accountHolder}
           onChangeText={setAccountHolder}

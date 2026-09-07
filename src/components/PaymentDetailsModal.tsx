@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { ActivityIndicator, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import QRCode from 'react-native-qrcode-svg';
 import { Ionicons } from '@expo/vector-icons';
@@ -11,6 +11,7 @@ import AppModal from './AppModal';
 import Button from './Button';
 import { useAuth } from '../context/AuthContext';
 import { usePayments } from '../context/PaymentContext';
+import AppText from './AppText';
 
 type Props = {
   visible: boolean;
@@ -86,15 +87,15 @@ export default function PaymentDetailsModal({
 
   return (
     <AppModal visible={visible} onClose={onClose}>
-      <Text style={typography.h3}>{title}</Text>
-      <Text style={styles.amount}>RM {amount.toFixed(2)}</Text>
+      <AppText style={typography.h3}>{title}</AppText>
+      <AppText style={styles.amount}>RM {amount.toFixed(2)}</AppText>
 
       {loading ? (
         <ActivityIndicator color={colors.primary} style={{ marginVertical: spacing.lg }} />
       ) : !bankInfo ? (
         <View style={styles.noAccountBox}>
           <Ionicons name="alert-circle-outline" size={22} color={colors.textMuted} />
-          <Text style={styles.noAccountText}>{t('paymentModal.noAccountTitle')}</Text>
+          <AppText style={styles.noAccountText}>{t('paymentModal.noAccountTitle')}</AppText>
           {canManageAccount && (
             <Button
               label={t('paymentModal.setupBank')}
@@ -111,31 +112,31 @@ export default function PaymentDetailsModal({
           <View style={styles.qrWrap}>
             <QRCode value={qrValue} size={150} color={colors.text} backgroundColor={colors.white} />
           </View>
-          <Text style={styles.qrHint}>{t('paymentModal.qrHint')}</Text>
+          <AppText style={styles.qrHint}>{t('paymentModal.qrHint')}</AppText>
 
           <View style={styles.accountCard}>
             <View style={styles.accountRow}>
-              <Text style={styles.accountLabel}>{t('paymentModal.bank')}</Text>
-              <Text style={styles.accountValue}>{bankInfo.bankName}</Text>
+              <AppText style={styles.accountLabel}>{t('paymentModal.bank')}</AppText>
+              <AppText style={styles.accountValue}>{bankInfo.bankName}</AppText>
             </View>
             <View style={styles.accountRow}>
-              <Text style={styles.accountLabel}>{t('paymentModal.accountNumber')}</Text>
+              <AppText style={styles.accountLabel}>{t('paymentModal.accountNumber')}</AppText>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Text style={styles.accountValue}>{bankInfo.accountNumber}</Text>
+                <AppText style={styles.accountValue}>{bankInfo.accountNumber}</AppText>
                 <TouchableOpacity onPress={handleCopy} hitSlop={8}>
                   <Ionicons name={copied ? 'checkmark-circle' : 'copy-outline'} size={16} color={colors.primary} />
                 </TouchableOpacity>
               </View>
             </View>
             <View style={styles.accountRow}>
-              <Text style={styles.accountLabel}>{t('paymentModal.accountHolder')}</Text>
-              <Text style={[styles.accountValue, { flex: 1, textAlign: 'right' }]}>{bankInfo.accountHolder}</Text>
+              <AppText style={styles.accountLabel}>{t('paymentModal.accountHolder')}</AppText>
+              <AppText style={[styles.accountValue, { flex: 1, textAlign: 'right' }]}>{bankInfo.accountHolder}</AppText>
             </View>
           </View>
 
-          {copied && <Text style={styles.copiedText}>{t('paymentModal.copied')}</Text>}
+          {copied && <AppText style={styles.copiedText}>{t('paymentModal.copied')}</AppText>}
 
-          <Text style={styles.note}>{t('paymentModal.note')}</Text>
+          <AppText style={styles.note}>{t('paymentModal.note')}</AppText>
 
           <View style={styles.modalActions}>
             <Button label={t('common.cancel')} variant="ghost" onPress={onClose} style={{ flex: 1 }} />

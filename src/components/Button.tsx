@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react';
-import { ActivityIndicator, Pressable, StyleSheet, Text, ViewStyle } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, ViewStyle } from 'react-native';
 import { radius, ColorPalette } from '../theme/theme';
 import { useThemeColors } from '../context/ThemeContext';
+import AppText from './AppText';
 
 type Props = {
   label: string;
@@ -38,7 +39,7 @@ export default function Button({
       {loading ? (
         <ActivityIndicator color={variant === 'ghost' ? colors.primary : colors.white} />
       ) : (
-        <Text style={[styles.label, labelVariantStyles[variant]]}>{label}</Text>
+        <AppText style={[styles.label, labelVariantStyles[variant]]}>{label}</AppText>
       )}
     </Pressable>
   );

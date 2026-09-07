@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { Linking, SectionList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Linking, SectionList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme';
@@ -10,6 +10,7 @@ import AppModal from '../components/AppModal';
 import { emergencyContacts } from '../data/mockData';
 import { useAuth, User } from '../context/AuthContext';
 import { toTitleCase } from '../utils/formatName';
+import AppText from '../components/AppText';
 
 type ListEntry =
   | { kind: 'member'; id: string; name: string; roleLabel: string; phone: string }
@@ -73,7 +74,7 @@ export default function CommitteeScreen() {
         sections={sections}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.xl }}
-        renderSectionHeader={({ section }) => <Text style={styles.sectionHeader}>{section.title}</Text>}
+        renderSectionHeader={({ section }) => <AppText style={styles.sectionHeader}>{section.title}</AppText>}
         renderItem={({ item }) => (
           <TouchableOpacity style={styles.card} activeOpacity={0.8} onPress={() => setSelected(item)}>
             <View
@@ -85,8 +86,8 @@ export default function CommitteeScreen() {
               <Ionicons name={item.kind === 'emergency' ? 'alert' : 'person'} size={18} color={colors.white} />
             </View>
             <View style={{ flex: 1, marginLeft: spacing.md }}>
-              <Text style={typography.h3}>{item.name}</Text>
-              <Text style={typography.caption}>{item.roleLabel}</Text>
+              <AppText style={typography.h3}>{item.name}</AppText>
+              <AppText style={typography.caption}>{item.roleLabel}</AppText>
             </View>
             <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
           </TouchableOpacity>
@@ -95,7 +96,7 @@ export default function CommitteeScreen() {
           section.isCommittee && committee.length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="people-outline" size={26} color={colors.textMuted} />
-              <Text style={styles.emptyText}>{t('committee.empty')}</Text>
+              <AppText style={styles.emptyText}>{t('committee.empty')}</AppText>
             </View>
           ) : null
         }
@@ -107,28 +108,28 @@ export default function CommitteeScreen() {
             <View style={[styles.modalAvatar, { backgroundColor: selected.kind === 'emergency' ? colors.danger : colors.primary }]}>
               <Ionicons name={selected.kind === 'emergency' ? 'alert' : 'person'} size={26} color={colors.white} />
             </View>
-            <Text style={[typography.h3, { textAlign: 'center', marginTop: spacing.md }]}>{selected.name}</Text>
-            <Text style={[typography.caption, { textAlign: 'center' }]}>{selected.roleLabel}</Text>
-            <Text style={styles.phoneText}>{selected.phone}</Text>
+            <AppText style={[typography.h3, { textAlign: 'center', marginTop: spacing.md }]}>{selected.name}</AppText>
+            <AppText style={[typography.caption, { textAlign: 'center' }]}>{selected.roleLabel}</AppText>
+            <AppText style={styles.phoneText}>{selected.phone}</AppText>
 
             <View style={styles.actionsRow}>
               <TouchableOpacity style={styles.actionButton} onPress={() => callNumber(selected.phone)}>
                 <View style={[styles.actionIcon, { backgroundColor: withAlpha(colors.primary, 0.12) }]}>
                   <Ionicons name="call" size={20} color={colors.primary} />
                 </View>
-                <Text style={styles.actionLabel}>{t('committee.call')}</Text>
+                <AppText style={styles.actionLabel}>{t('committee.call')}</AppText>
               </TouchableOpacity>
               <TouchableOpacity style={styles.actionButton} onPress={() => whatsappNumber(selected.phone)}>
                 <View style={[styles.actionIcon, { backgroundColor: withAlpha('#25D366', 0.15) }]}>
                   <Ionicons name="logo-whatsapp" size={20} color="#25D366" />
                 </View>
-                <Text style={styles.actionLabel}>{t('committee.whatsapp')}</Text>
+                <AppText style={styles.actionLabel}>{t('committee.whatsapp')}</AppText>
               </TouchableOpacity>
               <TouchableOpacity style={styles.actionButton} onPress={() => Linking.openURL(`sms:${selected.phone}`)}>
                 <View style={[styles.actionIcon, { backgroundColor: withAlpha(colors.accent, 0.15) }]}>
                   <Ionicons name="chatbubble-ellipses" size={20} color={colors.accent} />
                 </View>
-                <Text style={styles.actionLabel}>{t('committee.sms')}</Text>
+                <AppText style={styles.actionLabel}>{t('committee.sms')}</AppText>
               </TouchableOpacity>
             </View>
           </>

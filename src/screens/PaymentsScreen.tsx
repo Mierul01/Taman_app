@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme';
@@ -12,6 +12,7 @@ import PaymentDetailsModal from '../components/PaymentDetailsModal';
 import { feeItems, FeeItem } from '../data/mockData';
 import { useAuth } from '../context/AuthContext';
 import { usePayments } from '../context/PaymentContext';
+import AppText from '../components/AppText';
 
 export default function PaymentsScreen() {
   const colors = useThemeColors();
@@ -70,16 +71,16 @@ export default function PaymentsScreen() {
       {isDependent && (
         <View style={styles.dependentBanner}>
           <Ionicons name="checkmark-circle" size={18} color={colors.primary} />
-          <Text style={styles.dependentBannerText}>
+          <AppText style={styles.dependentBannerText}>
             {t('payments.dependentBanner', { guardian: user?.dependentOf ?? '' })}
-          </Text>
+          </AppText>
         </View>
       )}
 
       {canManageAccount && (
         <TouchableOpacity style={styles.manageLink} onPress={() => navigation.navigate('BankAccountSettings')}>
           <Ionicons name="settings-outline" size={15} color={colors.primary} />
-          <Text style={styles.manageLinkText}>{t('payments.manageBank')}</Text>
+          <AppText style={styles.manageLinkText}>{t('payments.manageBank')}</AppText>
         </TouchableOpacity>
       )}
 
@@ -97,23 +98,23 @@ export default function PaymentsScreen() {
                 <Ionicons name="card-outline" size={22} color={colors.white} />
               </View>
               <View style={{ flex: 1, marginLeft: spacing.md }}>
-                <Text style={typography.h3}>{item.title}</Text>
-                <Text style={[typography.caption, { marginTop: 2 }]} numberOfLines={2}>
+                <AppText style={typography.h3}>{item.title}</AppText>
+                <AppText style={[typography.caption, { marginTop: 2 }]} numberOfLines={2}>
                   {item.description}
-                </Text>
+                </AppText>
                 <View style={styles.rowBetween}>
-                  <Text style={styles.amount}>RM {item.amount.toFixed(2)}</Text>
-                  <Text style={styles.period}>{item.period}</Text>
+                  <AppText style={styles.amount}>RM {item.amount.toFixed(2)}</AppText>
+                  <AppText style={styles.period}>{item.period}</AppText>
                 </View>
                 <View style={styles.progressTrack}>
                   <View style={[styles.progressFill, { width: `${pct}%` }]} />
                 </View>
-                <Text style={styles.progressLabel}>
+                <AppText style={styles.progressLabel}>
                   {paid > 0
                     ? t('payments.paidAmount', { paid: paid.toFixed(2) }) +
                       (remaining > 0 ? t('payments.balance', { remaining: remaining.toFixed(2) }) : t('payments.complete'))
                     : t('payments.notPaid')}
-                </Text>
+                </AppText>
                 {!isDependent && (
                   <Button
                     label={paid > 0 && remaining > 0 ? t('payments.payBalance') : t('payments.payNow')}
@@ -130,10 +131,10 @@ export default function PaymentsScreen() {
 
       {selected && (
         <AppModal visible={!showDetails} onClose={closeAmountModal}>
-          <Text style={typography.h3}>{selected.title}</Text>
-          <Text style={[typography.caption, { marginTop: spacing.xs }]}>{t('payments.enterAmount')}</Text>
+          <AppText style={typography.h3}>{selected.title}</AppText>
+          <AppText style={[typography.caption, { marginTop: spacing.xs }]}>{t('payments.enterAmount')}</AppText>
           <View style={styles.amountWrap}>
-            <Text style={styles.currencyPrefix}>RM</Text>
+            <AppText style={styles.currencyPrefix}>RM</AppText>
             <TextInput value={payAmount} onChangeText={setPayAmount} keyboardType="numeric" style={styles.amountInput} />
           </View>
           <View style={styles.modalActions}>

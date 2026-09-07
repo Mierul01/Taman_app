@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { FlatList, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -10,6 +10,7 @@ import ScreenHeader from '../components/ScreenHeader';
 import Button from '../components/Button';
 import AppModal from '../components/AppModal';
 import { useAuth, User, Role } from '../context/AuthContext';
+import AppText from '../components/AppText';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'AdminPanel'>;
 
@@ -66,11 +67,11 @@ export default function AdminPanelScreen({ navigation }: Props) {
               <Ionicons name="person" size={18} color={colors.primary} />
             </View>
             <View style={{ flex: 1, marginLeft: spacing.md }}>
-              <Text style={typography.h3}>{item.name}</Text>
-              <Text style={typography.caption}>{item.email}</Text>
+              <AppText style={typography.h3}>{item.name}</AppText>
+              <AppText style={typography.caption}>{item.email}</AppText>
             </View>
             <View style={styles.roleBadge}>
-              <Text style={styles.roleBadgeText}>{t(`role.${item.role}`)}</Text>
+              <AppText style={styles.roleBadgeText}>{t(`role.${item.role}`)}</AppText>
             </View>
           </TouchableOpacity>
         )}
@@ -78,15 +79,15 @@ export default function AdminPanelScreen({ navigation }: Props) {
           !loading ? (
             <View style={styles.emptyState}>
               <Ionicons name="people-outline" size={28} color={colors.textMuted} />
-              <Text style={typography.caption}>{t('adminPanel.empty')}</Text>
+              <AppText style={typography.caption}>{t('adminPanel.empty')}</AppText>
             </View>
           ) : null
         }
       />
 
       <AppModal visible={!!selected} onClose={() => setSelected(null)}>
-        <Text style={typography.h3}>{selected?.name}</Text>
-        <Text style={[typography.caption, { marginTop: spacing.xs }]}>{t('adminPanel.pickRole')}</Text>
+        <AppText style={typography.h3}>{selected?.name}</AppText>
+        <AppText style={[typography.caption, { marginTop: spacing.xs }]}>{t('adminPanel.pickRole')}</AppText>
         <View style={styles.chipRow}>
           {ROLE_OPTIONS.map((role) => (
             <TouchableOpacity
@@ -95,9 +96,9 @@ export default function AdminPanelScreen({ navigation }: Props) {
               onPress={() => handleAssign(role)}
               disabled={saving}
             >
-              <Text style={[styles.chipText, selected?.role === role && styles.chipTextActive]}>
+              <AppText style={[styles.chipText, selected?.role === role && styles.chipTextActive]}>
                 {t(`role.${role}`)}
-              </Text>
+              </AppText>
             </TouchableOpacity>
           ))}
         </View>
