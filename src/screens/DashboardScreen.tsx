@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
@@ -8,7 +8,7 @@ import type { MainTabParamList } from '../navigation/types';
 import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme';
 import { useThemeColors, useThemeTypography } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
-import { useAuth } from '../context/AuthContext';
+import { useAuth, User } from '../context/AuthContext';
 import { usePayments } from '../context/PaymentContext';
 import { Program, emergencyContacts, feeItems, notifications, formatNotificationDate } from '../data/mockData';
 import { getAllPrograms } from '../data/programsStore';
@@ -32,6 +32,7 @@ export default function DashboardScreen({ navigation }: Props) {
   const [upcoming, setUpcoming] = useState<Program[]>([]);
   const [paidTotal, setPaidTotal] = useState(0);
   const [residentCount, setResidentCount] = useState<number | null>(null);
+  const [committeePreview, setCommitteePreview] = useState<User[]>([]);
   const emergencyPreview = emergencyContacts.slice(0, 2);
   const recentNotifications = notifications.slice(0, 2);
   const notifLocale = language === 'ms' ? 'ms-MY' : 'en-GB';
@@ -65,9 +66,19 @@ export default function DashboardScreen({ navigation }: Props) {
   useFocusEffect(
     useCallback(() => {
       if (!user?.parkName) return;
-      getParkUsers(user.parkName).then((residents) => setResidentCount(residents.length));
-    }, [user?.parkName])
+      getParkUsers(user.parkName).then((parkUsers) => {
+        setResidentCount(parkUsers.length);
+        setCommitteePreview(
+          parkUsers
+            .filter((u) => u.role !== 'resident' && u.email !== user.email)
+            .sort((a, b) => a.name.localeCompare(b.name))
+            .slice(0, 2)
+        );
+      });
+    }, [user?.parkName, user?.email])
   );
+
+  const callNumber = (phone: string) => Linking.openURL(`tel:${phone}`);
 
   const feeRemaining = Math.max(0, totalFeeAmount - paidTotal);
   const feePct = Math.min(100, Math.round((paidTotal / totalFeeAmount) * 100));
@@ -247,10 +258,53 @@ export default function DashboardScreen({ navigation }: Props) {
         ))}
       </View>
 
+      {committeePreview.length > 0 && (
+        <>
+          <View style={styles.sectionRow}>
+            <AppText style={styles.sectionTitle}>{t('committee.committeeSection')}</AppText>
+            <AppText style={styles.linkText} onPress={() => navigation.navigate('Committee')}>
+              {t('dashboard.viewAll')}
+            </AppText>
+          </View>
+          <View style={styles.committeeList}>
+            {committeePreview.map((member) => (
+              <TouchableOpacity
+                key={member.email}
+                style={styles.committeeCard}
+                activeOpacity={0.85}
+                onPress={() => navigation.navigate('Committee')}
+              >
+                <View style={styles.committeeAvatar}>
+                  <Ionicons name="person" size={18} color={colors.primary} />
+                </View>
+                <View style={{ flex: 1, marginLeft: spacing.sm }}>
+                  <AppText style={styles.committeeName} numberOfLines={1}>
+                    {toTitleCase(member.name)}
+                  </AppText>
+                  <AppText style={styles.committeeRole}>{t(`role.${member.role}`)}</AppText>
+                </View>
+                <TouchableOpacity
+                  style={styles.committeeCallButton}
+                  activeOpacity={0.8}
+                  onPress={() => callNumber(member.phone)}
+                >
+                  <Ionicons name="call" size={16} color={colors.white} />
+                </TouchableOpacity>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </>
+      )}
+
       <AppText style={styles.sectionTitle}>{t('dashboard.emergencyContacts')}</AppText>
       <View style={styles.emergencyRow}>
         {emergencyPreview.map((c) => (
-          <View key={c.id} style={styles.emergencyCard}>
+          <TouchableOpacity
+            key={c.id}
+            style={styles.emergencyCard}
+            activeOpacity={0.85}
+            onPress={() => callNumber(c.phone)}
+          >
             <View style={styles.emergencyIconWrap}>
               <Ionicons name="call" size={16} color={colors.danger} />
             </View>
@@ -258,7 +312,7 @@ export default function DashboardScreen({ navigation }: Props) {
               {t(`emergencyContact.${c.id}Role`)}
             </AppText>
             <AppText style={styles.emergencyPhone}>{c.phone}</AppText>
-          </View>
+          </TouchableOpacity>
         ))}
       </View>
     </ScrollView>
@@ -536,6 +590,44 @@ const makeStyles = (colors: ColorPalette) =>
       fontSize: 11,
       color: colors.textMuted,
       marginTop: 4,
+    },
+    committeeList: {
+      marginHorizontal: spacing.lg,
+      gap: spacing.sm,
+    },
+    committeeCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.sm,
+      ...shadow.card,
+    },
+    committeeAvatar: {
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: withAlpha(colors.primary, 0.12),
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    committeeName: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    committeeRole: {
+      fontSize: 12,
+      color: colors.textMuted,
+      marginTop: 1,
+    },
+    committeeCallButton: {
+      width: 36,
+      height: 36,
+      borderRadius: 18,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
     },
     emergencyRow: {
       flexDirection: 'row',
