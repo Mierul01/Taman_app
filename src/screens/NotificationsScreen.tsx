@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { RootStackParamList } from '../navigation/types';
@@ -24,7 +24,12 @@ export default function NotificationsScreen({ navigation }: Props) {
       <ScreenHeader title={t('notifications.title')} subtitle={t('notifications.subtitle')} onBack={() => navigation.goBack()} />
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.sm }}>
         {notifications.map((n) => (
-          <View key={n.id} style={[styles.card, n.unread && styles.cardUnread]}>
+          <TouchableOpacity
+            key={n.id}
+            style={[styles.card, n.unread && styles.cardUnread]}
+            activeOpacity={0.8}
+            onPress={() => (navigation as any).navigate('Main', { screen: n.target })}
+          >
             <View style={[styles.iconWrap, { backgroundColor: withAlpha(n.color, 0.12) }]}>
               <Ionicons name={n.icon} size={20} color={n.color} />
             </View>
@@ -38,7 +43,8 @@ export default function NotificationsScreen({ navigation }: Props) {
                 {t(n.timeKey)} · {formatNotificationDate(n.hoursAgo, locale)}
               </AppText>
             </View>
-          </View>
+            <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
+          </TouchableOpacity>
         ))}
       </ScrollView>
     </View>

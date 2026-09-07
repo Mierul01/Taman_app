@@ -148,13 +148,14 @@ export type NotificationDef = {
   timeKey: string;
   hoursAgo: number;
   unread?: boolean;
+  target: 'Payments' | 'Programs' | 'Charity' | 'Committee';
 };
 
 export const notifications: NotificationDef[] = [
-  { id: 'n1', icon: 'card', color: '#2E6FD9', titleKey: 'notifications.n1title', bodyKey: 'notifications.n1body', timeKey: 'notifications.time2h', hoursAgo: 2, unread: true },
-  { id: 'n2', icon: 'calendar', color: '#1B7A43', titleKey: 'notifications.n2title', bodyKey: 'notifications.n2body', timeKey: 'notifications.time1d', hoursAgo: 24, unread: true },
-  { id: 'n3', icon: 'heart', color: '#D9862E', titleKey: 'notifications.n3title', bodyKey: 'notifications.n3body', timeKey: 'notifications.time3d', hoursAgo: 72 },
-  { id: 'n4', icon: 'people', color: '#B23B6B', titleKey: 'notifications.n4title', bodyKey: 'notifications.n4body', timeKey: 'notifications.time1w', hoursAgo: 168 },
+  { id: 'n1', icon: 'card', color: '#2E6FD9', titleKey: 'notifications.n1title', bodyKey: 'notifications.n1body', timeKey: 'notifications.time2h', hoursAgo: 2, unread: true, target: 'Payments' },
+  { id: 'n2', icon: 'calendar', color: '#1B7A43', titleKey: 'notifications.n2title', bodyKey: 'notifications.n2body', timeKey: 'notifications.time1d', hoursAgo: 24, unread: true, target: 'Programs' },
+  { id: 'n3', icon: 'heart', color: '#D9862E', titleKey: 'notifications.n3title', bodyKey: 'notifications.n3body', timeKey: 'notifications.time3d', hoursAgo: 72, target: 'Charity' },
+  { id: 'n4', icon: 'people', color: '#B23B6B', titleKey: 'notifications.n4title', bodyKey: 'notifications.n4body', timeKey: 'notifications.time1w', hoursAgo: 168, target: 'Committee' },
 ];
 
 export function formatNotificationDate(hoursAgo: number, locale: string) {

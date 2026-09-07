@@ -225,23 +225,24 @@ export default function DashboardScreen({ navigation }: Props) {
             key={n.id}
             style={styles.notifCard}
             activeOpacity={0.8}
-            onPress={() => (navigation as any).navigate('Notifications')}
+            onPress={() => navigation.navigate(n.target)}
           >
             <View style={[styles.notifIconWrap, { backgroundColor: withAlpha(n.color, 0.12) }]}>
-              <Ionicons name={n.icon} size={16} color={n.color} />
+              <Ionicons name={n.icon} size={20} color={n.color} />
             </View>
-            <View style={{ flex: 1, marginLeft: spacing.sm }}>
+            <View style={{ flex: 1, marginLeft: spacing.md }}>
               <View style={styles.notifTitleRow}>
                 <AppText style={styles.notifTitle} numberOfLines={1}>
                   {t(n.titleKey)}
                 </AppText>
                 {n.unread && <View style={styles.notifDot} />}
               </View>
-              <AppText style={styles.notifBody} numberOfLines={1}>
+              <AppText style={styles.notifBody} numberOfLines={2}>
                 {t(n.bodyKey)}
               </AppText>
+              <AppText style={styles.notifTime}>{formatNotificationDate(n.hoursAgo, notifLocale)}</AppText>
             </View>
-            <AppText style={styles.notifTime}>{formatNotificationDate(n.hoursAgo, notifLocale)}</AppText>
+            <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
           </TouchableOpacity>
         ))}
       </View>
@@ -498,41 +499,43 @@ const makeStyles = (colors: ColorPalette) =>
       alignItems: 'center',
       backgroundColor: colors.surface,
       borderRadius: radius.md,
-      padding: spacing.sm,
+      padding: spacing.md,
       ...shadow.card,
     },
     notifIconWrap: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 42,
+      height: 42,
+      borderRadius: 21,
       alignItems: 'center',
       justifyContent: 'center',
     },
     notifTitleRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 5,
+      gap: 6,
     },
     notifTitle: {
-      fontSize: 13,
+      flexShrink: 1,
+      fontSize: 14,
       fontWeight: '700',
       color: colors.text,
     },
     notifDot: {
-      width: 6,
-      height: 6,
-      borderRadius: 3,
+      width: 7,
+      height: 7,
+      borderRadius: 3.5,
       backgroundColor: colors.danger,
     },
     notifBody: {
-      fontSize: 12,
+      fontSize: 12.5,
+      lineHeight: 17,
       color: colors.textMuted,
-      marginTop: 1,
+      marginTop: 2,
     },
     notifTime: {
-      fontSize: 10.5,
+      fontSize: 11,
       color: colors.textMuted,
-      marginLeft: spacing.sm,
+      marginTop: 4,
     },
     emergencyRow: {
       flexDirection: 'row',
