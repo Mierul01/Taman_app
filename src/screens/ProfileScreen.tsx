@@ -82,7 +82,7 @@ export default function ProfileScreen() {
     {
       icon: 'location-outline' as const,
       label: t('profile.postcodeCity'),
-      value: [user?.postcode, user?.city].filter(Boolean).join(' ') || '-',
+      value: [user?.postcode, user?.city, user?.district].filter(Boolean).join(', ') || '-',
     },
   ];
 

@@ -19,9 +19,11 @@ import { useThemeColors } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import ScreenHeader from '../components/ScreenHeader';
 import Button from '../components/Button';
+import SelectField from '../components/SelectField';
 import { useAuth } from '../context/AuthContext';
 import { pickAvatarImage } from '../utils/avatarPicker';
 import PasswordStrengthChecklist, { PasswordMatchIndicator } from '../components/PasswordStrengthChecklist';
+import { SELANGOR_CITIES_BY_DISTRICT, SELANGOR_DISTRICTS, SelangorDistrict } from '../data/selangorLocations';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProfileEdit'>;
 
@@ -34,6 +36,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
   const [phone, setPhone] = useState(user?.phone ?? '');
   const [address, setAddress] = useState(user?.address ?? '');
   const [postcode, setPostcode] = useState(user?.postcode ?? '');
+  const [district, setDistrict] = useState<SelangorDistrict | ''>((user?.district as SelangorDistrict) ?? '');
   const [city, setCity] = useState(user?.city ?? '');
   const [saving, setSaving] = useState(false);
   const [changingAvatar, setChangingAvatar] = useState(false);
@@ -82,7 +85,8 @@ export default function ProfileEditScreen({ navigation }: Props) {
       phone: phone.trim(),
       address: address.trim(),
       postcode: postcode.trim(),
-      city: city.trim(),
+      district,
+      city,
     });
     setSaving(false);
     navigation.goBack();
@@ -152,11 +156,29 @@ export default function ProfileEditScreen({ navigation }: Props) {
               placeholderTextColor={colors.textMuted}
             />
           </View>
-          <View style={{ flex: 2 }}>
-            <Text style={styles.fieldLabel}>{t('common.city')}</Text>
-            <TextInput value={city} onChangeText={setCity} style={styles.input} placeholderTextColor={colors.textMuted} />
-          </View>
+          <SelectField
+            label={t('common.district')}
+            icon="map-outline"
+            value={district}
+            options={SELANGOR_DISTRICTS as unknown as string[]}
+            placeholder={t('register.districtPlaceholder')}
+            onSelect={(value) => {
+              setDistrict(value as SelangorDistrict);
+              setCity('');
+            }}
+            style={{ flex: 2 }}
+          />
         </View>
+
+        <SelectField
+          label={t('common.city')}
+          icon="business-outline"
+          value={city}
+          options={district ? SELANGOR_CITIES_BY_DISTRICT[district] : []}
+          placeholder={district ? t('register.cityPlaceholder') : t('register.selectDistrictFirst')}
+          disabled={!district}
+          onSelect={setCity}
+        />
 
         <View style={styles.infoBox}>
           <Text style={styles.infoText}>

@@ -170,10 +170,9 @@ const makeStyles = (colors: ColorPalette) =>
     card: {
       flex: 1,
       backgroundColor: colors.surface,
-      borderTopLeftRadius: radius.lg * 1.7,
-      borderTopRightRadius: radius.lg * 1.7,
+      borderRadius: radius.lg * 1.7,
       marginHorizontal: spacing.md,
-      marginBottom: 0,
+      marginBottom: spacing.lg,
       ...shadow.card,
       overflow: 'hidden',
     },

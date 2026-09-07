@@ -17,8 +17,10 @@ import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme
 import { useThemeColors } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import Button from '../components/Button';
+import SelectField from '../components/SelectField';
 import { useAuth } from '../context/AuthContext';
 import PasswordStrengthChecklist, { PasswordMatchIndicator } from '../components/PasswordStrengthChecklist';
+import { SELANGOR_CITIES_BY_DISTRICT, SELANGOR_DISTRICTS, SelangorDistrict } from '../data/selangorLocations';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
@@ -33,6 +35,7 @@ export default function RegisterScreen({ navigation }: Props) {
   const [parkName, setParkName] = useState('');
   const [address, setAddress] = useState('');
   const [postcode, setPostcode] = useState('');
+  const [district, setDistrict] = useState<SelangorDistrict | ''>('');
   const [city, setCity] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -49,6 +52,7 @@ export default function RegisterScreen({ navigation }: Props) {
       !parkName.trim() ||
       !address.trim() ||
       !postcode.trim() ||
+      !district ||
       !city.trim() ||
       !password
     ) {
@@ -75,6 +79,7 @@ export default function RegisterScreen({ navigation }: Props) {
       parkName: parkName.trim(),
       address,
       postcode,
+      district,
       city,
       password,
     });
@@ -131,15 +136,28 @@ export default function RegisterScreen({ navigation }: Props) {
                 maxLength={5}
                 style={{ flex: 1 }}
               />
-              <Field
-                label={t('common.city')}
-                icon="business-outline"
-                value={city}
-                onChangeText={setCity}
-                placeholder={t('register.cityPlaceholder')}
+              <SelectField
+                label={t('common.district')}
+                icon="map-outline"
+                value={district}
+                options={SELANGOR_DISTRICTS as unknown as string[]}
+                placeholder={t('register.districtPlaceholder')}
+                onSelect={(value) => {
+                  setDistrict(value as SelangorDistrict);
+                  setCity('');
+                }}
                 style={{ flex: 2 }}
               />
             </View>
+            <SelectField
+              label={t('common.city')}
+              icon="business-outline"
+              value={city}
+              options={district ? SELANGOR_CITIES_BY_DISTRICT[district] : []}
+              placeholder={district ? t('register.cityPlaceholder') : t('register.selectDistrictFirst')}
+              disabled={!district}
+              onSelect={setCity}
+            />
             <Field label={t('register.password')} icon="lock-closed-outline" value={password} onChangeText={setPassword} placeholder={t('register.passwordPlaceholder')} secureTextEntry />
             <PasswordStrengthChecklist password={password} />
             <Field label={t('register.confirmPassword')} icon="lock-closed-outline" value={confirmPassword} onChangeText={setConfirmPassword} placeholder={t('register.confirmPasswordPlaceholder')} secureTextEntry />
@@ -204,7 +222,7 @@ function Field({
     <View style={style}>
       <Text style={styles.fieldLabel}>{label}</Text>
       <View style={[styles.inputWrap, multiline && styles.inputWrapMultiline]}>
-        <View style={[styles.inputIconWrap, multiline && styles.multilineIcon]}>
+        <View style={styles.inputIconWrap}>
           <Ionicons name={icon} size={15} color={colors.primary} />
         </View>
         <TextInput
@@ -264,9 +282,9 @@ const makeStyles = (colors: ColorPalette) =>
     card: {
       flex: 1,
       backgroundColor: colors.surface,
-      borderTopLeftRadius: radius.lg * 1.7,
-      borderTopRightRadius: radius.lg * 1.7,
+      borderRadius: radius.lg * 1.7,
       marginHorizontal: spacing.md,
+      marginBottom: spacing.lg,
       ...shadow.card,
       overflow: 'hidden',
     },
@@ -326,7 +344,7 @@ const makeStyles = (colors: ColorPalette) =>
       gap: spacing.sm,
     },
     inputWrapMultiline: {
-      alignItems: 'flex-start',
+      alignItems: 'center',
       height: undefined,
       minHeight: 56,
       paddingVertical: spacing.sm,
@@ -338,9 +356,6 @@ const makeStyles = (colors: ColorPalette) =>
       backgroundColor: withAlpha(colors.primary, 0.12),
       alignItems: 'center',
       justifyContent: 'center',
-    },
-    multilineIcon: {
-      marginTop: 2,
     },
     inputMultiline: {
       minHeight: 34,
