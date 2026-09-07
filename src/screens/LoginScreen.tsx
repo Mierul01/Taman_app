@@ -166,13 +166,12 @@ const makeStyles = (colors: ColorPalette) =>
     },
     cardWrap: {
       flex: 1,
+      justifyContent: 'flex-start',
     },
     card: {
-      flex: 1,
       backgroundColor: colors.surface,
       borderRadius: radius.lg * 1.7,
       marginHorizontal: spacing.md,
-      marginBottom: spacing.lg,
       ...shadow.card,
       overflow: 'hidden',
     },

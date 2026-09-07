@@ -23,7 +23,10 @@ import SelectField from '../components/SelectField';
 import { useAuth } from '../context/AuthContext';
 import { pickAvatarImage } from '../utils/avatarPicker';
 import PasswordStrengthChecklist, { PasswordMatchIndicator } from '../components/PasswordStrengthChecklist';
-import { SELANGOR_CITIES_BY_DISTRICT, SELANGOR_DISTRICTS, SelangorDistrict } from '../data/selangorLocations';
+import { SELANGOR_DISTRICTS, SelangorDistrict } from '../data/selangorLocations';
+import { buildMalaysiaCityList } from '../data/malaysiaLocations';
+
+const MALAYSIA_CITY_OPTIONS = buildMalaysiaCityList();
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProfileEdit'>;
 
@@ -162,10 +165,7 @@ export default function ProfileEditScreen({ navigation }: Props) {
             value={district}
             options={SELANGOR_DISTRICTS as unknown as string[]}
             placeholder={t('register.districtPlaceholder')}
-            onSelect={(value) => {
-              setDistrict(value as SelangorDistrict);
-              setCity('');
-            }}
+            onSelect={(value) => setDistrict(value as SelangorDistrict)}
             style={{ flex: 2 }}
           />
         </View>
@@ -174,9 +174,8 @@ export default function ProfileEditScreen({ navigation }: Props) {
           label={t('common.city')}
           icon="business-outline"
           value={city}
-          options={district ? SELANGOR_CITIES_BY_DISTRICT[district] : []}
-          placeholder={district ? t('register.cityPlaceholder') : t('register.selectDistrictFirst')}
-          disabled={!district}
+          options={MALAYSIA_CITY_OPTIONS}
+          placeholder={t('register.cityPlaceholder')}
           onSelect={setCity}
         />
 

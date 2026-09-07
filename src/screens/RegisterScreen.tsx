@@ -20,7 +20,10 @@ import Button from '../components/Button';
 import SelectField from '../components/SelectField';
 import { useAuth } from '../context/AuthContext';
 import PasswordStrengthChecklist, { PasswordMatchIndicator } from '../components/PasswordStrengthChecklist';
-import { SELANGOR_CITIES_BY_DISTRICT, SELANGOR_DISTRICTS, SelangorDistrict } from '../data/selangorLocations';
+import { SELANGOR_DISTRICTS, SelangorDistrict } from '../data/selangorLocations';
+import { buildMalaysiaCityList } from '../data/malaysiaLocations';
+
+const MALAYSIA_CITY_OPTIONS = buildMalaysiaCityList();
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
@@ -142,10 +145,7 @@ export default function RegisterScreen({ navigation }: Props) {
                 value={district}
                 options={SELANGOR_DISTRICTS as unknown as string[]}
                 placeholder={t('register.districtPlaceholder')}
-                onSelect={(value) => {
-                  setDistrict(value as SelangorDistrict);
-                  setCity('');
-                }}
+                onSelect={(value) => setDistrict(value as SelangorDistrict)}
                 style={{ flex: 2 }}
               />
             </View>
@@ -153,9 +153,8 @@ export default function RegisterScreen({ navigation }: Props) {
               label={t('common.city')}
               icon="business-outline"
               value={city}
-              options={district ? SELANGOR_CITIES_BY_DISTRICT[district] : []}
-              placeholder={district ? t('register.cityPlaceholder') : t('register.selectDistrictFirst')}
-              disabled={!district}
+              options={MALAYSIA_CITY_OPTIONS}
+              placeholder={t('register.cityPlaceholder')}
               onSelect={setCity}
             />
             <Field label={t('register.password')} icon="lock-closed-outline" value={password} onChangeText={setPassword} placeholder={t('register.passwordPlaceholder')} secureTextEntry />
@@ -229,7 +228,7 @@ function Field({
           {...inputProps}
           secureTextEntry={secureTextEntry && !visible}
           multiline={multiline}
-          textAlignVertical={multiline ? 'top' : 'center'}
+          textAlignVertical="center"
           placeholderTextColor={colors.textMuted}
           style={[styles.input, multiline && styles.inputMultiline]}
         />
@@ -359,7 +358,6 @@ const makeStyles = (colors: ColorPalette) =>
     },
     inputMultiline: {
       minHeight: 34,
-      paddingTop: 0,
     },
     input: {
       flex: 1,
