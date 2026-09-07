@@ -18,21 +18,28 @@ type NotificationDef = {
   titleKey: string;
   bodyKey: string;
   timeKey: string;
+  hoursAgo: number;
   unread?: boolean;
 };
 
 const notifications: NotificationDef[] = [
-  { id: 'n1', icon: 'card', color: '#2E6FD9', titleKey: 'notifications.n1title', bodyKey: 'notifications.n1body', timeKey: 'notifications.time2h', unread: true },
-  { id: 'n2', icon: 'calendar', color: '#1B7A43', titleKey: 'notifications.n2title', bodyKey: 'notifications.n2body', timeKey: 'notifications.time1d', unread: true },
-  { id: 'n3', icon: 'heart', color: '#D9862E', titleKey: 'notifications.n3title', bodyKey: 'notifications.n3body', timeKey: 'notifications.time3d' },
-  { id: 'n4', icon: 'people', color: '#B23B6B', titleKey: 'notifications.n4title', bodyKey: 'notifications.n4body', timeKey: 'notifications.time1w' },
+  { id: 'n1', icon: 'card', color: '#2E6FD9', titleKey: 'notifications.n1title', bodyKey: 'notifications.n1body', timeKey: 'notifications.time2h', hoursAgo: 2, unread: true },
+  { id: 'n2', icon: 'calendar', color: '#1B7A43', titleKey: 'notifications.n2title', bodyKey: 'notifications.n2body', timeKey: 'notifications.time1d', hoursAgo: 24, unread: true },
+  { id: 'n3', icon: 'heart', color: '#D9862E', titleKey: 'notifications.n3title', bodyKey: 'notifications.n3body', timeKey: 'notifications.time3d', hoursAgo: 72 },
+  { id: 'n4', icon: 'people', color: '#B23B6B', titleKey: 'notifications.n4title', bodyKey: 'notifications.n4body', timeKey: 'notifications.time1w', hoursAgo: 168 },
 ];
+
+function formatDate(hoursAgo: number, locale: string) {
+  const d = new Date(Date.now() - hoursAgo * 60 * 60 * 1000);
+  return d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+}
 
 export default function NotificationsScreen({ navigation }: Props) {
   const colors = useThemeColors();
   const typography = useThemeTypography();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const locale = language === 'ms' ? 'ms-MY' : 'en-GB';
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -49,7 +56,9 @@ export default function NotificationsScreen({ navigation }: Props) {
                 {n.unread && <View style={styles.dot} />}
               </View>
               <AppText style={[typography.body, { marginTop: 2 }]}>{t(n.bodyKey)}</AppText>
-              <AppText style={styles.time}>{t(n.timeKey)}</AppText>
+              <AppText style={styles.time}>
+                {t(n.timeKey)} · {formatDate(n.hoursAgo, locale)}
+              </AppText>
             </View>
           </View>
         ))}
