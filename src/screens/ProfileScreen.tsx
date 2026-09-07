@@ -357,8 +357,8 @@ const makeStyles = (colors: ColorPalette) =>
     heroCard: {
       alignItems: 'center',
       marginHorizontal: spacing.lg,
-      marginTop: -36,
-      paddingTop: 48,
+      marginTop: 0,
+      paddingTop: 72,
       paddingBottom: spacing.lg,
       paddingHorizontal: spacing.lg,
       backgroundColor: colors.surface,
@@ -367,7 +367,7 @@ const makeStyles = (colors: ColorPalette) =>
     },
     avatarWrap: {
       position: 'absolute',
-      top: -36,
+      top: -20,
       width: 88,
       height: 88,
       borderRadius: 44,
