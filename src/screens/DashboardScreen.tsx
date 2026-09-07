@@ -10,7 +10,7 @@ import { useThemeColors, useThemeTypography } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 import { usePayments } from '../context/PaymentContext';
-import { Program, emergencyContacts, feeItems } from '../data/mockData';
+import { Program, emergencyContacts, feeItems, charityItems, notifications, formatNotificationDate } from '../data/mockData';
 import { getAllPrograms } from '../data/programsStore';
 import HighlightCarousel from '../components/HighlightCarousel';
 import AppText from '../components/AppText';
@@ -24,14 +24,17 @@ const totalFeeAmount = feeItems.reduce((sum, item) => sum + item.amount, 0);
 export default function DashboardScreen({ navigation }: Props) {
   const colors = useThemeColors();
   const typography = useThemeTypography();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   const { getUserPaymentRecords } = usePayments();
   const [upcoming, setUpcoming] = useState<Program[]>([]);
   const [paidTotal, setPaidTotal] = useState(0);
+  const [contributedTotal, setContributedTotal] = useState(0);
   const emergencyPreview = emergencyContacts.slice(0, 2);
+  const recentNotifications = notifications.slice(0, 2);
+  const notifLocale = language === 'ms' ? 'ms-MY' : 'en-GB';
   const isDependent = !!user?.dependentOf;
 
   useFocusEffect(
@@ -55,6 +58,20 @@ export default function DashboardScreen({ navigation }: Props) {
           paid += records.reduce((sum, r) => sum + r.amount, 0);
         }
         setPaidTotal(paid);
+      })();
+    }, [user?.email])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) return;
+      (async () => {
+        let contributed = 0;
+        for (const item of charityItems) {
+          const records = await getUserPaymentRecords(user.email, item.id);
+          contributed += records.reduce((sum, r) => sum + r.amount, 0);
+        }
+        setContributedTotal(contributed);
       })();
     }, [user?.email])
   );
@@ -148,6 +165,28 @@ export default function DashboardScreen({ navigation }: Props) {
         </View>
       </TouchableOpacity>
 
+      <TouchableOpacity
+        style={styles.charityCard}
+        activeOpacity={0.85}
+        onPress={() => navigation.navigate('Charity')}
+      >
+        <View style={styles.feeIconWrapAccent}>
+          <Ionicons name="heart" size={20} color={colors.white} />
+        </View>
+        <View style={{ flex: 1, marginLeft: spacing.md }}>
+          <AppText style={styles.feeTitle}>{t('dashboard.charityStatusTitle')}</AppText>
+          <AppText style={styles.feeSummary}>{t('charity.contributed', { amount: contributedTotal.toFixed(2) })}</AppText>
+        </View>
+        {!isDependent && (
+          <Button
+            label={t('charity.contributeNow')}
+            onPress={() => navigation.navigate('Charity')}
+            variant="secondary"
+            style={styles.feeButton}
+          />
+        )}
+      </TouchableOpacity>
+
       <View style={styles.sectionRow}>
         <AppText style={styles.sectionTitle}>{t('dashboard.upcomingPrograms')}</AppText>
         <AppText style={styles.linkText} onPress={() => navigation.navigate('Programs')}>
@@ -164,6 +203,39 @@ export default function DashboardScreen({ navigation }: Props) {
           <AppText style={typography.caption}>{t('dashboard.noUpcoming')}</AppText>
         </View>
       )}
+
+      <View style={styles.sectionRow}>
+        <AppText style={styles.sectionTitle}>{t('dashboard.recentNotifications')}</AppText>
+        <AppText style={styles.linkText} onPress={() => (navigation as any).navigate('Notifications')}>
+          {t('dashboard.viewAll')}
+        </AppText>
+      </View>
+      <View style={styles.notifList}>
+        {recentNotifications.map((n) => (
+          <TouchableOpacity
+            key={n.id}
+            style={styles.notifCard}
+            activeOpacity={0.8}
+            onPress={() => (navigation as any).navigate('Notifications')}
+          >
+            <View style={[styles.notifIconWrap, { backgroundColor: withAlpha(n.color, 0.12) }]}>
+              <Ionicons name={n.icon} size={16} color={n.color} />
+            </View>
+            <View style={{ flex: 1, marginLeft: spacing.sm }}>
+              <View style={styles.notifTitleRow}>
+                <AppText style={styles.notifTitle} numberOfLines={1}>
+                  {t(n.titleKey)}
+                </AppText>
+                {n.unread && <View style={styles.notifDot} />}
+              </View>
+              <AppText style={styles.notifBody} numberOfLines={1}>
+                {t(n.bodyKey)}
+              </AppText>
+            </View>
+            <AppText style={styles.notifTime}>{formatNotificationDate(n.hoursAgo, notifLocale)}</AppText>
+          </TouchableOpacity>
+        ))}
+      </View>
 
       <AppText style={styles.sectionTitle}>{t('dashboard.emergencyContacts')}</AppText>
       <View style={styles.emergencyRow}>
@@ -324,6 +396,24 @@ const makeStyles = (colors: ColorPalette) =>
       alignItems: 'center',
       justifyContent: 'center',
     },
+    charityCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      marginHorizontal: spacing.lg,
+      marginTop: spacing.sm,
+      borderRadius: radius.md,
+      padding: spacing.md,
+      ...shadow.card,
+    },
+    feeIconWrapAccent: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: colors.accent,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
     feeTitle: {
       fontSize: 15,
       fontWeight: '700',
@@ -370,6 +460,51 @@ const makeStyles = (colors: ColorPalette) =>
       alignItems: 'center',
       gap: spacing.md,
       ...shadow.card,
+    },
+    notifList: {
+      marginHorizontal: spacing.lg,
+      gap: spacing.sm,
+    },
+    notifCard: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      padding: spacing.sm,
+      ...shadow.card,
+    },
+    notifIconWrap: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    notifTitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 5,
+    },
+    notifTitle: {
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    notifDot: {
+      width: 6,
+      height: 6,
+      borderRadius: 3,
+      backgroundColor: colors.danger,
+    },
+    notifBody: {
+      fontSize: 12,
+      color: colors.textMuted,
+      marginTop: 1,
+    },
+    notifTime: {
+      fontSize: 10.5,
+      color: colors.textMuted,
+      marginLeft: spacing.sm,
     },
     emergencyRow: {
       flexDirection: 'row',

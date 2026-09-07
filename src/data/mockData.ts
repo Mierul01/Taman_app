@@ -138,3 +138,26 @@ export const emergencyContacts: EmergencyContact[] = [
   { id: 'e2', name: 'Balai Polis', role: 'Kecemasan - Polis', phone: '999' },
   { id: 'e3', name: 'Ambulans / Hospital', role: 'Kecemasan - Perubatan', phone: '999' },
 ];
+
+export type NotificationDef = {
+  id: string;
+  icon: keyof typeof import('@expo/vector-icons').Ionicons.glyphMap;
+  color: string;
+  titleKey: string;
+  bodyKey: string;
+  timeKey: string;
+  hoursAgo: number;
+  unread?: boolean;
+};
+
+export const notifications: NotificationDef[] = [
+  { id: 'n1', icon: 'card', color: '#2E6FD9', titleKey: 'notifications.n1title', bodyKey: 'notifications.n1body', timeKey: 'notifications.time2h', hoursAgo: 2, unread: true },
+  { id: 'n2', icon: 'calendar', color: '#1B7A43', titleKey: 'notifications.n2title', bodyKey: 'notifications.n2body', timeKey: 'notifications.time1d', hoursAgo: 24, unread: true },
+  { id: 'n3', icon: 'heart', color: '#D9862E', titleKey: 'notifications.n3title', bodyKey: 'notifications.n3body', timeKey: 'notifications.time3d', hoursAgo: 72 },
+  { id: 'n4', icon: 'people', color: '#B23B6B', titleKey: 'notifications.n4title', bodyKey: 'notifications.n4body', timeKey: 'notifications.time1w', hoursAgo: 168 },
+];
+
+export function formatNotificationDate(hoursAgo: number, locale: string) {
+  const d = new Date(Date.now() - hoursAgo * 60 * 60 * 1000);
+  return d.toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
+}
