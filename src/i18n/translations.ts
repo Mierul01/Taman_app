@@ -73,6 +73,12 @@ export const translations = {
       checkSpecial: 'One special character',
       passwordsMatch: 'Passwords match',
       passwordsNoMatch: 'Passwords do not match',
+      pdpaConsent: 'I agree to the collection, use and storage of my personal data as described in the',
+      pdpaReadMore: 'PDPA Notice.',
+      pdpaRequired: 'Please agree to the PDPA notice to continue.',
+      pdpaModalTitle: 'PDPA Notice',
+      pdpaModalBody:
+        'By registering, you consent to Neighbourly collecting, using and storing your personal data — including your name, email address, phone number, home address, and park/community details — for the purpose of managing your residents’ association account. This includes fee and charity payment records, community program participation, family member records you choose to add, and communication with your committee.\n\nThis processing is carried out in accordance with the Personal Data Protection Act 2010 (PDPA) of Malaysia. Your data is stored securely and is only accessible to your park’s committee members for the purposes described above.\n\nYou may contact your park’s admin at any time to request access to, correction of, or removal of your personal data.',
     },
     dashboard: {
       welcome: 'Welcome,',
@@ -367,6 +373,12 @@ export const translations = {
       checkSpecial: 'Satu aksara khas',
       passwordsMatch: 'Kata laluan sepadan',
       passwordsNoMatch: 'Kata laluan tidak sepadan',
+      pdpaConsent: 'Saya bersetuju dengan pengumpulan, penggunaan dan penyimpanan data peribadi saya seperti dinyatakan dalam',
+      pdpaReadMore: 'Notis PDPA.',
+      pdpaRequired: 'Sila bersetuju dengan notis PDPA untuk meneruskan.',
+      pdpaModalTitle: 'Notis PDPA',
+      pdpaModalBody:
+        'Dengan mendaftar, anda bersetuju membenarkan Neighbourly mengumpul, menggunakan dan menyimpan data peribadi anda — termasuk nama, alamat e-mel, nombor telefon, alamat rumah dan maklumat taman/komuniti anda — bagi tujuan menguruskan akaun Persatuan Penduduk anda. Ini termasuk rekod bayaran yuran dan khairat, penyertaan program komuniti, rekod ahli keluarga yang anda pilih untuk ditambah, serta komunikasi dengan AJK anda.\n\nPemprosesan ini dijalankan selaras dengan Akta Perlindungan Data Peribadi 2010 (PDPA) Malaysia. Data anda disimpan dengan selamat dan hanya boleh diakses oleh ahli jawatankuasa taman anda bagi tujuan yang dinyatakan di atas.\n\nAnda boleh menghubungi admin taman anda pada bila-bila masa untuk memohon akses, pembetulan atau pembuangan data peribadi anda.',
     },
     dashboard: {
       welcome: 'Selamat Datang,',

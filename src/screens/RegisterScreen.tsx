@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
   View,
   ViewStyle,
 } from 'react-native';
@@ -16,6 +17,7 @@ import { radius, spacing, ColorPalette } from '../theme/theme';
 import { useThemeColors, useThemeTypography } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import Button from '../components/Button';
+import AppModal from '../components/AppModal';
 import { useAuth } from '../context/AuthContext';
 import PasswordStrengthChecklist, { PasswordMatchIndicator } from '../components/PasswordStrengthChecklist';
 
@@ -36,6 +38,8 @@ export default function RegisterScreen({ navigation }: Props) {
   const [city, setCity] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [pdpaConsent, setPdpaConsent] = useState(false);
+  const [showPdpaModal, setShowPdpaModal] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -60,6 +64,10 @@ export default function RegisterScreen({ navigation }: Props) {
     }
     if (password !== confirmPassword) {
       setError(t('register.passwordMismatch'));
+      return;
+    }
+    if (!pdpaConsent) {
+      setError(t('register.pdpaRequired'));
       return;
     }
     setLoading(true);
@@ -135,6 +143,20 @@ export default function RegisterScreen({ navigation }: Props) {
           <Field label={t('register.confirmPassword')} icon="lock-closed-outline" value={confirmPassword} onChangeText={setConfirmPassword} placeholder={t('register.confirmPasswordPlaceholder')} secureTextEntry />
           <PasswordMatchIndicator password={password} confirmPassword={confirmPassword} />
 
+          <TouchableOpacity style={styles.pdpaRow} activeOpacity={0.75} onPress={() => setPdpaConsent((v) => !v)}>
+            <Ionicons
+              name={pdpaConsent ? 'checkbox' : 'square-outline'}
+              size={20}
+              color={colors.primary}
+            />
+            <Text style={styles.pdpaText}>
+              {t('register.pdpaConsent')}{' '}
+              <Text style={styles.pdpaLink} onPress={() => setShowPdpaModal(true)}>
+                {t('register.pdpaReadMore')}
+              </Text>
+            </Text>
+          </TouchableOpacity>
+
           {error ? <Text style={styles.error}>{error}</Text> : null}
 
           <Button label={t('register.submit')} onPress={handleRegister} loading={loading} style={{ marginTop: spacing.md }} />
@@ -147,6 +169,18 @@ export default function RegisterScreen({ navigation }: Props) {
           </View>
         </View>
       </ScrollView>
+
+      <AppModal visible={showPdpaModal} onClose={() => setShowPdpaModal(false)}>
+        <ScrollView showsVerticalScrollIndicator={false}>
+          <Text style={typography.h3}>{t('register.pdpaModalTitle')}</Text>
+          <Text style={styles.pdpaModalBody}>{t('register.pdpaModalBody')}</Text>
+          <Button
+            label={t('common.close')}
+            onPress={() => setShowPdpaModal(false)}
+            style={{ marginTop: spacing.lg }}
+          />
+        </ScrollView>
+      </AppModal>
     </KeyboardAvoidingView>
   );
 }
@@ -156,6 +190,7 @@ function Field({
   icon,
   style,
   multiline,
+  secureTextEntry,
   ...inputProps
 }: {
   label: string;
@@ -172,6 +207,7 @@ function Field({
 }) {
   const colors = useThemeColors();
   const styles = useMemo(() => makeStyles(colors), [colors]);
+  const [visible, setVisible] = useState(false);
   return (
     <View style={style}>
       <Text style={styles.fieldLabel}>{label}</Text>
@@ -179,11 +215,20 @@ function Field({
         <Ionicons name={icon} size={18} color={colors.textMuted} style={multiline ? styles.multilineIcon : undefined} />
         <TextInput
           {...inputProps}
+          secureTextEntry={secureTextEntry && !visible}
           multiline={multiline}
           textAlignVertical={multiline ? 'top' : 'center'}
           placeholderTextColor={colors.textMuted}
           style={[styles.input, multiline && styles.inputMultiline]}
         />
+        {secureTextEntry && (
+          <Ionicons
+            name={visible ? 'eye-off-outline' : 'eye-outline'}
+            size={18}
+            color={colors.textMuted}
+            onPress={() => setVisible((v) => !v)}
+          />
+        )}
       </View>
     </View>
   );
@@ -249,6 +294,28 @@ const makeStyles = (colors: ColorPalette) =>
       flex: 1,
       fontSize: 15,
       color: colors.text,
+    },
+    pdpaRow: {
+      flexDirection: 'row',
+      alignItems: 'flex-start',
+      gap: spacing.sm,
+      marginTop: spacing.lg,
+    },
+    pdpaText: {
+      flex: 1,
+      fontSize: 12,
+      color: colors.textMuted,
+      lineHeight: 17,
+    },
+    pdpaLink: {
+      color: colors.primary,
+      fontWeight: '700',
+    },
+    pdpaModalBody: {
+      marginTop: spacing.sm,
+      fontSize: 13,
+      color: colors.textMuted,
+      lineHeight: 19,
     },
     error: {
       color: colors.danger,
