@@ -10,6 +10,7 @@ import Button from '../components/Button';
 import AppModal from '../components/AppModal';
 import { useAuth, Role } from '../context/AuthContext';
 import AppText from '../components/AppText';
+import { toTitleCase } from '../utils/formatName';
 
 const RELATIONSHIPS = ['Isteri', 'Suami', 'Anak', 'Ibu', 'Bapa', 'Lain-lain'];
 
@@ -78,7 +79,6 @@ export default function ProfileScreen() {
   const infoRows = [
     { key: 'email', icon: 'mail-outline' as const, label: t('common.email'), value: user?.email || '-', showVerifyBadge: true },
     { key: 'phone', icon: 'call-outline' as const, label: t('common.phone'), value: user?.phone || '-' },
-    { key: 'park', icon: 'business-outline' as const, label: t('profile.park'), value: user?.parkName || '-' },
     { key: 'address', icon: 'home-outline' as const, label: t('common.address'), value: user?.address || '-' },
     {
       key: 'postcodeCity',
@@ -121,22 +121,28 @@ export default function ProfileScreen() {
       <ScrollView contentContainerStyle={{ paddingBottom: spacing.xl }}>
         <ScreenHeader title={t('profile.title')} />
 
-        <View style={styles.profileCard}>
+        <View style={styles.heroCard}>
           <View style={styles.avatarWrap}>
             {user?.avatarUri ? (
               <Image source={{ uri: user.avatarUri }} style={styles.avatar} />
             ) : (
               <View style={styles.avatar}>
-                <Ionicons name="person" size={46} color={colors.white} />
+                <Ionicons name="person" size={40} color={colors.white} />
               </View>
             )}
           </View>
           <AppText style={[typography.h3, styles.nameText]} numberOfLines={2} ellipsizeMode="tail">
-            {user?.name}
+            {toTitleCase(user?.name ?? '')}
           </AppText>
           <View style={styles.roleBadge}>
             <AppText style={styles.roleBadgeText}>{t(`role.${user?.role ?? 'resident'}`)}</AppText>
           </View>
+          {user?.parkName ? (
+            <View style={styles.parkRow}>
+              <Ionicons name="business" size={13} color={colors.textMuted} />
+              <AppText style={styles.parkRowText}>{toTitleCase(user.parkName)}</AppText>
+            </View>
+          ) : null}
         </View>
 
         <View style={styles.sectionCard}>
@@ -159,17 +165,22 @@ export default function ProfileScreen() {
         <View style={styles.infoCard}>
           {infoRows.map((row, idx) => (
             <View key={row.key} style={[styles.infoRow, idx !== infoRows.length - 1 && styles.rowDivider]}>
-              <Ionicons name={row.icon} size={18} color={colors.textMuted} />
+              <View style={styles.infoIconWrap}>
+                <Ionicons name={row.icon} size={16} color={colors.primary} />
+              </View>
               <View style={{ marginLeft: spacing.md, flex: 1 }}>
                 <AppText style={typography.caption}>{row.label}</AppText>
                 <AppText style={typography.body}>{row.value}</AppText>
+                {row.showVerifyBadge && (
+                  <View style={styles.verifyRow}>
+                    <Ionicons name="alert-circle-outline" size={12} color={colors.textMuted} />
+                    <AppText style={styles.verifyRowText}>{t('profile.notVerified')}</AppText>
+                    <TouchableOpacity activeOpacity={1} disabled>
+                      <AppText style={styles.verifyLink}>{t('profile.verifyEmail')}</AppText>
+                    </TouchableOpacity>
+                  </View>
+                )}
               </View>
-              {row.showVerifyBadge && (
-                <TouchableOpacity style={styles.verifyPill} activeOpacity={1} disabled>
-                  <Ionicons name="shield-outline" size={12} color={colors.textMuted} />
-                  <AppText style={styles.verifyPillText}>{t('profile.verifyEmail')}</AppText>
-                </TouchableOpacity>
-              )}
             </View>
           ))}
         </View>
@@ -343,30 +354,41 @@ export default function ProfileScreen() {
 
 const makeStyles = (colors: ColorPalette) =>
   StyleSheet.create({
-    profileCard: {
+    heroCard: {
       alignItems: 'center',
-      paddingVertical: spacing.lg,
+      marginHorizontal: spacing.lg,
+      marginTop: -36,
+      paddingTop: 48,
+      paddingBottom: spacing.lg,
       paddingHorizontal: spacing.lg,
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      ...shadow.card,
     },
     avatarWrap: {
-      width: 108,
-      height: 108,
+      position: 'absolute',
+      top: -36,
+      width: 88,
+      height: 88,
+      borderRadius: 44,
+      borderWidth: 4,
+      borderColor: colors.surface,
+      ...shadow.card,
     },
     avatar: {
-      width: 108,
-      height: 108,
-      borderRadius: 54,
+      width: '100%',
+      height: '100%',
+      borderRadius: 40,
       backgroundColor: colors.primary,
       alignItems: 'center',
       justifyContent: 'center',
     },
     nameText: {
-      marginTop: spacing.sm,
       textAlign: 'center',
       maxWidth: '100%',
     },
     roleBadge: {
-      marginTop: 4,
+      marginTop: 6,
       backgroundColor: withAlpha(colors.primary, 0.1),
       paddingHorizontal: spacing.sm,
       paddingVertical: 3,
@@ -376,6 +398,17 @@ const makeStyles = (colors: ColorPalette) =>
       fontSize: 12,
       fontWeight: '700',
       color: colors.primaryDark,
+    },
+    parkRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginTop: spacing.sm,
+    },
+    parkRowText: {
+      fontSize: 13,
+      color: colors.textMuted,
+      fontWeight: '600',
     },
     sectionCard: {
       backgroundColor: colors.surface,
@@ -421,29 +454,37 @@ const makeStyles = (colors: ColorPalette) =>
     },
     infoRow: {
       flexDirection: 'row',
-      alignItems: 'center',
+      alignItems: 'flex-start',
       paddingVertical: spacing.sm,
+    },
+    infoIconWrap: {
+      width: 32,
+      height: 32,
+      borderRadius: 16,
+      backgroundColor: withAlpha(colors.primary, 0.1),
+      alignItems: 'center',
+      justifyContent: 'center',
+      marginTop: 2,
     },
     rowDivider: {
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
     },
-    verifyPill: {
+    verifyRow: {
       flexDirection: 'row',
       alignItems: 'center',
       gap: 4,
-      backgroundColor: colors.background,
-      borderWidth: 1,
-      borderColor: colors.border,
-      borderRadius: radius.full,
-      paddingHorizontal: spacing.sm,
-      paddingVertical: 4,
-      opacity: 0.6,
+      marginTop: 4,
     },
-    verifyPillText: {
+    verifyRowText: {
       fontSize: 11,
-      fontWeight: '600',
       color: colors.textMuted,
+    },
+    verifyLink: {
+      fontSize: 11,
+      fontWeight: '700',
+      color: colors.primary,
+      opacity: 0.6,
     },
     sectionRow: {
       flexDirection: 'row',
