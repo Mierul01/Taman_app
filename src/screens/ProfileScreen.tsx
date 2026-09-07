@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, TextInput, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme';
@@ -9,6 +9,7 @@ import ScreenHeader from '../components/ScreenHeader';
 import Button from '../components/Button';
 import AppModal from '../components/AppModal';
 import { useAuth, Role } from '../context/AuthContext';
+import AppText from '../components/AppText';
 
 const RELATIONSHIPS = ['Isteri', 'Suami', 'Anak', 'Ibu', 'Bapa', 'Lain-lain'];
 
@@ -75,11 +76,12 @@ export default function ProfileScreen() {
   };
 
   const infoRows = [
-    { icon: 'mail-outline' as const, label: t('common.email'), value: user?.email || '-' },
-    { icon: 'call-outline' as const, label: t('common.phone'), value: user?.phone || '-' },
-    { icon: 'business-outline' as const, label: t('profile.park'), value: user?.parkName || '-' },
-    { icon: 'home-outline' as const, label: t('common.address'), value: user?.address || '-' },
+    { key: 'email', icon: 'mail-outline' as const, label: t('common.email'), value: user?.email || '-', showVerifyBadge: true },
+    { key: 'phone', icon: 'call-outline' as const, label: t('common.phone'), value: user?.phone || '-' },
+    { key: 'park', icon: 'business-outline' as const, label: t('profile.park'), value: user?.parkName || '-' },
+    { key: 'address', icon: 'home-outline' as const, label: t('common.address'), value: user?.address || '-' },
     {
+      key: 'postcodeCity',
       icon: 'location-outline' as const,
       label: t('profile.postcodeCity'),
       value: [user?.postcode, user?.city, user?.district].filter(Boolean).join(', ') || '-',
@@ -129,11 +131,11 @@ export default function ProfileScreen() {
               </View>
             )}
           </View>
-          <Text style={[typography.h3, styles.nameText]} numberOfLines={2} ellipsizeMode="tail">
+          <AppText style={[typography.h3, styles.nameText]} numberOfLines={2} ellipsizeMode="tail">
             {user?.name}
-          </Text>
+          </AppText>
           <View style={styles.roleBadge}>
-            <Text style={styles.roleBadgeText}>{t(`role.${user?.role ?? 'resident'}`)}</Text>
+            <AppText style={styles.roleBadgeText}>{t(`role.${user?.role ?? 'resident'}`)}</AppText>
           </View>
         </View>
 
@@ -148,7 +150,7 @@ export default function ProfileScreen() {
               <View style={[styles.actionIconWrap, row.highlight && styles.actionIconWrapHighlight]}>
                 <Ionicons name={row.icon} size={18} color={row.highlight ? colors.white : colors.primary} />
               </View>
-              <Text style={[styles.actionLabel, row.highlight && styles.actionLabelHighlight]}>{row.label}</Text>
+              <AppText style={[styles.actionLabel, row.highlight && styles.actionLabelHighlight]}>{row.label}</AppText>
               <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
             </TouchableOpacity>
           ))}
@@ -156,20 +158,26 @@ export default function ProfileScreen() {
 
         <View style={styles.infoCard}>
           {infoRows.map((row, idx) => (
-            <View key={row.label} style={[styles.infoRow, idx !== infoRows.length - 1 && styles.rowDivider]}>
+            <View key={row.key} style={[styles.infoRow, idx !== infoRows.length - 1 && styles.rowDivider]}>
               <Ionicons name={row.icon} size={18} color={colors.textMuted} />
               <View style={{ marginLeft: spacing.md, flex: 1 }}>
-                <Text style={typography.caption}>{row.label}</Text>
-                <Text style={typography.body}>{row.value}</Text>
+                <AppText style={typography.caption}>{row.label}</AppText>
+                <AppText style={typography.body}>{row.value}</AppText>
               </View>
+              {row.showVerifyBadge && (
+                <TouchableOpacity style={styles.verifyPill} activeOpacity={1} disabled>
+                  <Ionicons name="shield-outline" size={12} color={colors.textMuted} />
+                  <AppText style={styles.verifyPillText}>{t('profile.verifyEmail')}</AppText>
+                </TouchableOpacity>
+              )}
             </View>
           ))}
         </View>
 
         <View style={styles.sectionRow}>
-          <Text style={styles.sectionTitle}>{t('profile.familyMembers')}</Text>
+          <AppText style={styles.sectionTitle}>{t('profile.familyMembers')}</AppText>
         </View>
-        <Text style={styles.sectionSubtitle}>{t('profile.familyHint')}</Text>
+        <AppText style={styles.sectionSubtitle}>{t('profile.familyHint')}</AppText>
 
         <View style={styles.sectionCard}>
           {!user?.familyMembers?.length ? (
@@ -177,7 +185,7 @@ export default function ProfileScreen() {
               <View style={styles.emptyFamilyIconWrap}>
                 <Ionicons name="people-outline" size={24} color={colors.primary} />
               </View>
-              <Text style={styles.emptyFamilyText}>{t('profile.noFamily')}</Text>
+              <AppText style={styles.emptyFamilyText}>{t('profile.noFamily')}</AppText>
             </View>
           ) : (
             user.familyMembers.map((member, idx) => (
@@ -189,17 +197,17 @@ export default function ProfileScreen() {
                   <Ionicons name="person" size={18} color={colors.primary} />
                 </View>
                 <View style={{ flex: 1, marginLeft: spacing.md }}>
-                  <Text style={typography.h3} numberOfLines={1}>
+                  <AppText style={typography.h3} numberOfLines={1}>
                     {member.name}
-                  </Text>
+                  </AppText>
                   <View style={styles.familyMetaRow}>
                     <View style={styles.relationshipBadge}>
-                      <Text style={styles.relationshipBadgeText}>
+                      <AppText style={styles.relationshipBadgeText}>
                         {t(`relationship.${member.relationship}`)}
-                      </Text>
+                      </AppText>
                     </View>
                     {member.age ? (
-                      <Text style={typography.caption}>{t('profile.yearsOld', { age: member.age })}</Text>
+                      <AppText style={typography.caption}>{t('profile.yearsOld', { age: member.age })}</AppText>
                     ) : null}
                     {member.linkedEmail ? (
                       <Ionicons name="link" size={12} color={colors.textMuted} />
@@ -220,7 +228,7 @@ export default function ProfileScreen() {
             <View style={styles.addMemberIconWrap}>
               <Ionicons name="add" size={18} color={colors.primary} />
             </View>
-            <Text style={styles.addMemberLabel}>{t('profile.addMember')}</Text>
+            <AppText style={styles.addMemberLabel}>{t('profile.addMember')}</AppText>
           </TouchableOpacity>
         </View>
 
@@ -230,10 +238,10 @@ export default function ProfileScreen() {
       </ScrollView>
 
       <AppModal visible={confirmLogout} onClose={() => setConfirmLogout(false)}>
-        <Text style={[typography.h3, { textAlign: 'center' }]}>{t('profile.logOutConfirmTitle')}</Text>
-        <Text style={[typography.caption, { textAlign: 'center', marginTop: spacing.xs }]}>
+        <AppText style={[typography.h3, { textAlign: 'center' }]}>{t('profile.logOutConfirmTitle')}</AppText>
+        <AppText style={[typography.caption, { textAlign: 'center', marginTop: spacing.xs }]}>
           {t('profile.logOutConfirmBody')}
-        </Text>
+        </AppText>
         <View style={styles.modalActions}>
           <Button label={t('common.cancel')} variant="ghost" onPress={() => setConfirmLogout(false)} style={{ flex: 1 }} />
           <Button
@@ -250,9 +258,9 @@ export default function ProfileScreen() {
 
       <AppModal visible={familyVisible} onClose={() => setFamilyVisible(false)}>
         <ScrollView showsVerticalScrollIndicator={false}>
-          <Text style={typography.h3}>{t('profile.addFamilyTitle')}</Text>
+          <AppText style={typography.h3}>{t('profile.addFamilyTitle')}</AppText>
           <View style={{ marginTop: spacing.md }}>
-            <Text style={styles.fieldLabel}>{t('profile.memberName')}</Text>
+            <AppText style={styles.fieldLabel}>{t('profile.memberName')}</AppText>
             <TextInput
               value={memberName}
               onChangeText={setMemberName}
@@ -260,7 +268,7 @@ export default function ProfileScreen() {
               style={styles.input}
               placeholderTextColor={colors.textMuted}
             />
-            <Text style={styles.fieldLabel}>{t('profile.relationship')}</Text>
+            <AppText style={styles.fieldLabel}>{t('profile.relationship')}</AppText>
             <View style={styles.chipRow}>
               {RELATIONSHIPS.map((rel) => (
                 <TouchableOpacity
@@ -268,13 +276,13 @@ export default function ProfileScreen() {
                   style={[styles.chip, memberRelationship === rel && styles.chipActive]}
                   onPress={() => setMemberRelationship(rel)}
                 >
-                  <Text style={[styles.chipText, memberRelationship === rel && styles.chipTextActive]}>
+                  <AppText style={[styles.chipText, memberRelationship === rel && styles.chipTextActive]}>
                     {t(`relationship.${rel}`)}
-                  </Text>
+                  </AppText>
                 </TouchableOpacity>
               ))}
             </View>
-            <Text style={styles.fieldLabel}>{t('profile.age')}</Text>
+            <AppText style={styles.fieldLabel}>{t('profile.age')}</AppText>
             <TextInput
               value={memberAge}
               onChangeText={setMemberAge}
@@ -287,13 +295,13 @@ export default function ProfileScreen() {
 
             <TouchableOpacity style={styles.toggleRow} onPress={() => setCreateLogin((v) => !v)}>
               <Ionicons name={createLogin ? 'checkbox' : 'square-outline'} size={20} color={colors.primary} />
-              <Text style={styles.toggleLabel}>{t('profile.createLoginToggle')}</Text>
+              <AppText style={styles.toggleLabel}>{t('profile.createLoginToggle')}</AppText>
             </TouchableOpacity>
 
             {createLogin && (
               <>
-                <Text style={styles.toggleHint}>{t('profile.createLoginHint')}</Text>
-                <Text style={styles.fieldLabel}>{t('profile.memberEmail')}</Text>
+                <AppText style={styles.toggleHint}>{t('profile.createLoginHint')}</AppText>
+                <AppText style={styles.fieldLabel}>{t('profile.memberEmail')}</AppText>
                 <TextInput
                   value={memberEmail}
                   onChangeText={setMemberEmail}
@@ -303,7 +311,7 @@ export default function ProfileScreen() {
                   style={styles.input}
                   placeholderTextColor={colors.textMuted}
                 />
-                <Text style={styles.fieldLabel}>{t('profile.memberPassword')}</Text>
+                <AppText style={styles.fieldLabel}>{t('profile.memberPassword')}</AppText>
                 <TextInput
                   value={memberPassword}
                   onChangeText={setMemberPassword}
@@ -315,7 +323,7 @@ export default function ProfileScreen() {
               </>
             )}
 
-            {memberError ? <Text style={styles.errorText}>{memberError}</Text> : null}
+            {memberError ? <AppText style={styles.errorText}>{memberError}</AppText> : null}
           </View>
           <View style={styles.modalActions}>
             <Button label={t('common.cancel')} variant="ghost" onPress={() => setFamilyVisible(false)} style={{ flex: 1 }} />
@@ -419,6 +427,23 @@ const makeStyles = (colors: ColorPalette) =>
     rowDivider: {
       borderBottomWidth: 1,
       borderBottomColor: colors.border,
+    },
+    verifyPill: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      backgroundColor: colors.background,
+      borderWidth: 1,
+      borderColor: colors.border,
+      borderRadius: radius.full,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 4,
+      opacity: 0.6,
+    },
+    verifyPillText: {
+      fontSize: 11,
+      fontWeight: '600',
+      color: colors.textMuted,
     },
     sectionRow: {
       flexDirection: 'row',
