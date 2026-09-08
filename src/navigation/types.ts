@@ -1,4 +1,5 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
+import type { Program } from '../data/mockData';
 
 export type RootStackParamList = {
   Login: undefined;
@@ -16,7 +17,7 @@ export type RootStackParamList = {
 
 export type MainTabParamList = {
   Dashboard: undefined;
-  Programs: undefined;
+  Programs: { category?: Program['category'] } | undefined;
   Payments: undefined;
   Charity: undefined;
   Committee: undefined;

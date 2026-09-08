@@ -1,5 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Linking, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
+import Svg, { Circle } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabScreenProps } from '@react-navigation/bottom-tabs';
 import { useFocusEffect } from '@react-navigation/native';
@@ -10,7 +11,15 @@ import { useThemeColors, useThemeTypography } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { useAuth, User } from '../context/AuthContext';
 import { usePayments } from '../context/PaymentContext';
-import { Program, emergencyContacts, feeItems, notifications, formatNotificationDate } from '../data/mockData';
+import {
+  Program,
+  categoryColors,
+  categoryIcons,
+  emergencyContacts,
+  feeItems,
+  notifications,
+  formatNotificationDate,
+} from '../data/mockData';
 import { getAllPrograms } from '../data/programsStore';
 import HighlightCarousel from '../components/HighlightCarousel';
 import AppText from '../components/AppText';
@@ -20,6 +29,20 @@ import { toTitleCase } from '../utils/formatName';
 type Props = BottomTabScreenProps<MainTabParamList, 'Dashboard'>;
 
 const totalFeeAmount = feeItems.reduce((sum, item) => sum + item.amount, 0);
+const FEE_RING_SIZE = 56;
+const FEE_RING_STROKE = 5;
+const FEE_RING_RADIUS = (FEE_RING_SIZE - FEE_RING_STROKE) / 2;
+const FEE_RING_CIRCUMFERENCE = 2 * Math.PI * FEE_RING_RADIUS;
+const EXPLORE_CATEGORIES: Program['category'][] = ['Sukan', 'Gotong-Royong', 'Perayaan', 'Kursus'];
+
+// Hand-picked stock placeholder photos (Lorem Picsum — free, royalty-free) shown
+// until a park's AJK uploads a real photo for a program of that category.
+const CATEGORY_FALLBACK_IMAGES: Record<Program['category'], string> = {
+  Sukan: 'https://picsum.photos/id/1058/800/450', // stadium field
+  'Gotong-Royong': 'https://picsum.photos/id/1043/800/450', // park/forest
+  Perayaan: 'https://picsum.photos/id/225/800/450', // flowers, festive
+  Kursus: 'https://picsum.photos/id/431/800/450', // coffee & notes, workshop feel
+};
 
 export default function DashboardScreen({ navigation }: Props) {
   const colors = useThemeColors();
@@ -30,7 +53,10 @@ export default function DashboardScreen({ navigation }: Props) {
   const { user, getParkUsers } = useAuth();
   const { getUserPaymentRecords } = usePayments();
   const [upcoming, setUpcoming] = useState<Program[]>([]);
+  const [upcomingAll, setUpcomingAll] = useState<Program[]>([]);
   const [paidTotal, setPaidTotal] = useState(0);
+  const [paidByItem, setPaidByItem] = useState<Record<string, number>>({});
+  const [feeExpanded, setFeeExpanded] = useState(false);
   const [residentCount, setResidentCount] = useState<number | null>(null);
   const [committeePreview, setCommitteePreview] = useState<User[]>([]);
   const emergencyPreview = emergencyContacts.slice(0, 2);
@@ -44,6 +70,7 @@ export default function DashboardScreen({ navigation }: Props) {
       getAllPrograms().then((all) => {
         const scoped = all.filter((p) => !p.parkName || p.parkName === user?.parkName);
         const next = scoped.filter((p) => p.dateISO >= today).sort((a, b) => a.dateISO.localeCompare(b.dateISO));
+        setUpcomingAll(next);
         setUpcoming(next.slice(0, 5));
       });
     }, [user?.parkName])
@@ -54,11 +81,15 @@ export default function DashboardScreen({ navigation }: Props) {
       if (!user) return;
       (async () => {
         let paid = 0;
+        const byItem: Record<string, number> = {};
         for (const item of feeItems) {
           const records = await getUserPaymentRecords(user.email, item.id);
-          paid += records.reduce((sum, r) => sum + r.amount, 0);
+          const itemPaid = records.reduce((sum, r) => sum + r.amount, 0);
+          byItem[item.id] = itemPaid;
+          paid += itemPaid;
         }
         setPaidTotal(paid);
+        setPaidByItem(byItem);
       })();
     }, [user?.email])
   );
@@ -80,8 +111,21 @@ export default function DashboardScreen({ navigation }: Props) {
 
   const callNumber = (phone: string) => Linking.openURL(`tel:${phone}`);
 
+  const categoryCounts = useMemo(() => {
+    const counts: Partial<Record<Program['category'], number>> = {};
+    upcomingAll.forEach((p) => {
+      counts[p.category] = (counts[p.category] ?? 0) + 1;
+    });
+    return counts;
+  }, [upcomingAll]);
+
   const feeRemaining = Math.max(0, totalFeeAmount - paidTotal);
   const feePct = Math.min(100, Math.round((paidTotal / totalFeeAmount) * 100));
+
+  const upcomingWithImages = useMemo(
+    () => upcoming.map((program) => ({ ...program, imageUri: program.imageUri ?? CATEGORY_FALLBACK_IMAGES[program.category] })),
+    [upcoming]
+  );
 
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.background }} contentContainerStyle={{ paddingBottom: spacing.xl }}>
@@ -133,14 +177,78 @@ export default function DashboardScreen({ navigation }: Props) {
         </View>
       </View>
 
-      <TouchableOpacity
-        style={styles.feeCard}
-        activeOpacity={0.85}
-        onPress={() => navigation.navigate('Payments')}
-      >
-        <View style={styles.feeCardTop}>
-          <View style={styles.feeIconWrap}>
-            <Ionicons name="card" size={20} color={colors.white} />
+      {upcomingWithImages.length > 0 ? (
+        <View style={{ marginTop: spacing.lg }}>
+          <HighlightCarousel
+            programs={upcomingWithImages}
+            onPressItem={(program) => (navigation as any).navigate('ProgramDetail', { programId: program.id })}
+          />
+        </View>
+      ) : (
+        <View style={[styles.upcomingCard, { marginTop: spacing.lg }]}>
+          <AppText style={typography.caption}>{t('dashboard.noUpcoming')}</AppText>
+        </View>
+      )}
+
+      <AppText style={styles.sectionTitle}>{t('dashboard.exploreCategories')}</AppText>
+      <View style={styles.exploreGrid}>
+        {EXPLORE_CATEGORIES.map((cat) => (
+          <TouchableOpacity
+            key={cat}
+            style={[styles.exploreCard, { backgroundColor: categoryColors[cat] }]}
+            activeOpacity={0.85}
+            onPress={() => navigation.navigate('Programs', { category: cat })}
+          >
+            <Ionicons
+              name={categoryIcons[cat]}
+              size={70}
+              color="rgba(255,255,255,0.16)"
+              style={styles.exploreWatermark}
+            />
+            <View style={styles.exploreIconWrap}>
+              <Ionicons name={categoryIcons[cat]} size={20} color={colors.white} />
+            </View>
+            <AppText style={styles.exploreLabel}>{t(`category.${cat}`)}</AppText>
+            <AppText style={styles.exploreCount}>
+              {t('dashboard.categoryCount', { count: categoryCounts[cat] ?? 0 })}
+            </AppText>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <View style={styles.feeCard}>
+        <TouchableOpacity
+          style={styles.feeCardTop}
+          activeOpacity={0.8}
+          onPress={() => navigation.navigate('Payments')}
+        >
+          <View style={styles.feeRingWrap}>
+            <Svg
+              width={FEE_RING_SIZE}
+              height={FEE_RING_SIZE}
+              style={{ transform: [{ rotate: '-90deg' }] }}
+            >
+              <Circle
+                cx={FEE_RING_SIZE / 2}
+                cy={FEE_RING_SIZE / 2}
+                r={FEE_RING_RADIUS}
+                stroke={colors.border}
+                strokeWidth={FEE_RING_STROKE}
+                fill="none"
+              />
+              <Circle
+                cx={FEE_RING_SIZE / 2}
+                cy={FEE_RING_SIZE / 2}
+                r={FEE_RING_RADIUS}
+                stroke={colors.primary}
+                strokeWidth={FEE_RING_STROKE}
+                fill="none"
+                strokeDasharray={`${FEE_RING_CIRCUMFERENCE} ${FEE_RING_CIRCUMFERENCE}`}
+                strokeDashoffset={FEE_RING_CIRCUMFERENCE * (1 - feePct / 100)}
+                strokeLinecap="round"
+              />
+            </Svg>
+            <AppText style={styles.feeRingLabel}>{feePct}%</AppText>
           </View>
           <View style={{ flex: 1, marginLeft: spacing.md }}>
             <AppText style={styles.feeTitle}>{t('dashboard.feeStatusTitle')}</AppText>
@@ -149,10 +257,8 @@ export default function DashboardScreen({ navigation }: Props) {
             </AppText>
           </View>
           <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-        </View>
-        <View style={styles.feeProgressTrack}>
-          <View style={[styles.feeProgressFill, { width: `${feePct}%` }]} />
-        </View>
+        </TouchableOpacity>
+
         <View style={styles.feeCardBottom}>
           <AppText style={styles.feeStatusLabel}>
             {feeRemaining > 0
@@ -167,7 +273,49 @@ export default function DashboardScreen({ navigation }: Props) {
             />
           )}
         </View>
-      </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.feeToggleRow}
+          activeOpacity={0.7}
+          onPress={() => setFeeExpanded((v) => !v)}
+        >
+          <AppText style={styles.feeToggleText}>
+            {feeExpanded ? t('dashboard.feeHideBreakdown') : t('dashboard.feeBreakdown')}
+          </AppText>
+          <Ionicons
+            name={feeExpanded ? 'chevron-up' : 'chevron-down'}
+            size={14}
+            color={colors.primary}
+          />
+        </TouchableOpacity>
+
+        {feeExpanded && (
+          <View style={styles.feeItemList}>
+            {feeItems.map((item) => {
+              const itemPaid = paidByItem[item.id] ?? 0;
+              const isPaid = itemPaid >= item.amount;
+              const badgeColor = isPaid ? '#1B7A43' : '#D9862E';
+              return (
+                <View key={item.id} style={styles.feeItemRow}>
+                  <Ionicons
+                    name={isPaid ? 'checkmark-circle' : 'time-outline'}
+                    size={16}
+                    color={badgeColor}
+                  />
+                  <AppText style={styles.feeItemTitle} numberOfLines={1}>
+                    {item.title}
+                  </AppText>
+                  <View style={[styles.feeItemBadge, { backgroundColor: withAlpha(badgeColor, 0.12) }]}>
+                    <AppText style={[styles.feeItemBadgeText, { color: badgeColor }]}>
+                      {isPaid ? t('dashboard.feePaid') : t('dashboard.feeUnpaid')}
+                    </AppText>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
+        )}
+      </View>
 
       <View style={styles.statsCard}>
         <TouchableOpacity
@@ -206,23 +354,6 @@ export default function DashboardScreen({ navigation }: Props) {
           <AppText style={styles.statLabel}>{t('dashboard.statFamily')}</AppText>
         </TouchableOpacity>
       </View>
-
-      <View style={styles.sectionRow}>
-        <AppText style={styles.sectionTitle}>{t('dashboard.upcomingPrograms')}</AppText>
-        <AppText style={styles.linkText} onPress={() => navigation.navigate('Programs')}>
-          {t('dashboard.viewAll')}
-        </AppText>
-      </View>
-      {upcoming.length > 0 ? (
-        <HighlightCarousel
-          programs={upcoming}
-          onPressItem={(program) => (navigation as any).navigate('ProgramDetail', { programId: program.id })}
-        />
-      ) : (
-        <View style={styles.upcomingCard}>
-          <AppText style={typography.caption}>{t('dashboard.noUpcoming')}</AppText>
-        </View>
-      )}
 
       <View style={styles.sectionRow}>
         <AppText style={styles.sectionTitle}>{t('dashboard.recentNotifications')}</AppText>
@@ -452,13 +583,17 @@ const makeStyles = (colors: ColorPalette) =>
       flexDirection: 'row',
       alignItems: 'center',
     },
-    feeIconWrap: {
-      width: 42,
-      height: 42,
-      borderRadius: 21,
-      backgroundColor: colors.primary,
+    feeRingWrap: {
+      width: FEE_RING_SIZE,
+      height: FEE_RING_SIZE,
       alignItems: 'center',
       justifyContent: 'center',
+    },
+    feeRingLabel: {
+      position: 'absolute',
+      fontSize: 13,
+      fontWeight: '700',
+      color: colors.text,
     },
     statsCard: {
       flexDirection: 'row',
@@ -507,23 +642,11 @@ const makeStyles = (colors: ColorPalette) =>
       color: colors.textMuted,
       marginTop: 2,
     },
-    feeProgressTrack: {
-      height: 6,
-      borderRadius: 3,
-      backgroundColor: colors.border,
-      marginTop: spacing.md,
-      overflow: 'hidden',
-    },
-    feeProgressFill: {
-      height: '100%',
-      borderRadius: 3,
-      backgroundColor: colors.primary,
-    },
     feeCardBottom: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginTop: spacing.sm,
+      marginTop: spacing.md,
     },
     feeStatusLabel: {
       flex: 1,
@@ -533,6 +656,88 @@ const makeStyles = (colors: ColorPalette) =>
     feeButton: {
       paddingHorizontal: spacing.lg,
       paddingVertical: spacing.sm,
+    },
+    feeToggleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 4,
+      marginTop: spacing.md,
+      paddingTop: spacing.sm,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
+    feeToggleText: {
+      fontSize: 12.5,
+      fontWeight: '600',
+      color: colors.primary,
+    },
+    feeItemList: {
+      marginTop: spacing.sm,
+      gap: spacing.xs,
+    },
+    feeItemRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      paddingVertical: 6,
+    },
+    feeItemTitle: {
+      flex: 1,
+      fontSize: 12.5,
+      color: colors.text,
+    },
+    feeItemBadge: {
+      borderRadius: radius.sm,
+      paddingHorizontal: spacing.sm,
+      paddingVertical: 3,
+    },
+    feeItemBadgeText: {
+      fontSize: 11,
+      fontWeight: '700',
+    },
+    exploreGrid: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      justifyContent: 'space-between',
+      marginHorizontal: spacing.lg,
+      rowGap: spacing.sm,
+    },
+    exploreCard: {
+      width: '48%',
+      height: 130,
+      borderRadius: radius.lg,
+      padding: spacing.md,
+      overflow: 'hidden',
+      justifyContent: 'flex-end',
+      ...shadow.card,
+    },
+    exploreWatermark: {
+      position: 'absolute',
+      right: -14,
+      top: -12,
+    },
+    exploreIconWrap: {
+      position: 'absolute',
+      top: spacing.md,
+      left: spacing.md,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: 'rgba(255,255,255,0.25)',
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    exploreLabel: {
+      fontSize: 15,
+      fontWeight: '700',
+      color: colors.white,
+    },
+    exploreCount: {
+      fontSize: 11.5,
+      fontWeight: '600',
+      color: 'rgba(255,255,255,0.9)',
+      marginTop: 2,
     },
     upcomingCard: {
       flexDirection: 'row',

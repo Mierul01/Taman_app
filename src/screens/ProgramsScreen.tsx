@@ -1,7 +1,7 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme';
 import { useThemeColors, useThemeTypography } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
@@ -11,6 +11,7 @@ import Button from '../components/Button';
 import { Program, categoryColors as categoryColor } from '../data/mockData';
 import { getAllPrograms } from '../data/programsStore';
 import { useAuth } from '../context/AuthContext';
+import type { MainTabParamList } from '../navigation/types';
 import AppText from '../components/AppText';
 
 function todayISO() {
@@ -29,8 +30,10 @@ export default function ProgramsScreen() {
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   const navigation = useNavigation<any>();
+  const route = useRoute<RouteProp<MainTabParamList, 'Programs'>>();
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [allPrograms, setAllPrograms] = useState<Program[]>([]);
+  const [categoryFilter, setCategoryFilter] = useState<Program['category'] | null>(null);
 
   const canAddProgram = user ? ['admin', 'ajk', 'chairman', 'treasurer'].includes(user.role) : false;
 
@@ -40,6 +43,12 @@ export default function ProgramsScreen() {
         setAllPrograms(all.filter((p) => !p.parkName || p.parkName === user?.parkName))
       );
     }, [user?.parkName])
+  );
+
+  useFocusEffect(
+    useCallback(() => {
+      setCategoryFilter(route.params?.category ?? null);
+    }, [route.params?.category])
   );
 
   const markedDates = useMemo(() => {
@@ -58,15 +67,25 @@ export default function ProgramsScreen() {
   const upcomingPrograms = useMemo(
     () =>
       allPrograms
-        .filter((p) => p.dateISO >= today)
+        .filter((p) => p.dateISO >= today && (!categoryFilter || p.category === categoryFilter))
         .sort((a, b) => a.dateISO.localeCompare(b.dateISO)),
-    [allPrograms, today]
+    [allPrograms, today, categoryFilter]
   );
   const programsForSelectedDate = selectedDate ? allPrograms.filter((p) => p.dateISO === selectedDate) : [];
 
   const isDefaultView = selectedDate === null;
-  const listTitle = isDefaultView ? t('programs.upcoming') : formatSelected(selectedDate, language === 'ms' ? 'ms-MY' : 'en-GB');
+  const listTitle = isDefaultView
+    ? categoryFilter
+      ? t(`category.${categoryFilter}`)
+      : t('programs.upcoming')
+    : formatSelected(selectedDate, language === 'ms' ? 'ms-MY' : 'en-GB');
   const listPrograms = isDefaultView ? upcomingPrograms : programsForSelectedDate;
+  const showReset = !isDefaultView || !!categoryFilter;
+  const clearFilters = () => {
+    setSelectedDate(null);
+    setCategoryFilter(null);
+    navigation.setParams({ category: undefined });
+  };
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
@@ -93,9 +112,9 @@ export default function ProgramsScreen() {
             </View>
           )}
         </View>
-        {!isDefaultView && (
-          <AppText style={styles.resetLink} onPress={() => setSelectedDate(null)}>
-            {t('programs.backToUpcoming')}
+        {showReset && (
+          <AppText style={styles.resetLink} onPress={clearFilters}>
+            {!isDefaultView ? t('programs.backToUpcoming') : t('programs.clearFilter')}
           </AppText>
         )}
 

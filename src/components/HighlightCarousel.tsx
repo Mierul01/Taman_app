@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Image, ScrollView, StyleSheet, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { radius, spacing, withAlpha, ColorPalette } from '../theme/theme';
+import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme';
 import { useThemeColors } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import { Program, categoryColors, categoryIcons } from '../data/mockData';
@@ -20,8 +20,7 @@ export default function HighlightCarousel({
   const colors = useThemeColors();
   const { t } = useLanguage();
   const { width: windowWidth } = useWindowDimensions();
-  const slideWidth = windowWidth - SIDE_MARGIN * 2;
-  const styles = React.useMemo(() => makeStyles(colors, slideWidth), [colors, slideWidth]);
+  const styles = React.useMemo(() => makeStyles(colors, windowWidth), [colors, windowWidth]);
 
   const scrollRef = useRef<ScrollView>(null);
   const [activeIndex, setActiveIndex] = useState(0);
@@ -39,14 +38,14 @@ export default function HighlightCarousel({
       const next = (indexRef.current + 1) % programs.length;
       indexRef.current = next;
       setActiveIndex(next);
-      scrollRef.current?.scrollTo({ x: next * (slideWidth + spacing.sm), animated: true });
+      scrollRef.current?.scrollTo({ x: next * windowWidth, animated: true });
     }, AUTO_ADVANCE_MS);
     return () => clearInterval(timer);
-  }, [programs.length, slideWidth]);
+  }, [programs.length, windowWidth]);
 
-  const handleMomentumEnd = (e: any) => {
+  const syncActiveIndex = (e: any) => {
     const x = e.nativeEvent.contentOffset.x;
-    const idx = Math.round(x / (slideWidth + spacing.sm));
+    const idx = Math.max(0, Math.min(programs.length - 1, Math.round(x / windowWidth)));
     indexRef.current = idx;
     setActiveIndex(idx);
   };
@@ -58,57 +57,54 @@ export default function HighlightCarousel({
       <ScrollView
         ref={scrollRef}
         horizontal
+        pagingEnabled
         showsHorizontalScrollIndicator={false}
-        snapToInterval={slideWidth + spacing.sm}
-        decelerationRate="fast"
-        contentContainerStyle={{ paddingHorizontal: SIDE_MARGIN }}
-        onMomentumScrollEnd={handleMomentumEnd}
+        onMomentumScrollEnd={syncActiveIndex}
+        onScrollEndDrag={syncActiveIndex}
       >
-        {programs.map((program, idx) => {
+        {programs.map((program) => {
           const color = categoryColors[program.category];
           const hasPhoto = !!program.imageUri;
           return (
-            <TouchableOpacity
-              key={program.id}
-              activeOpacity={0.9}
-              onPress={() => onPressItem(program)}
-              style={[
-                styles.slide,
-                { backgroundColor: color, marginRight: idx === programs.length - 1 ? 0 : spacing.sm },
-              ]}
-            >
-              {hasPhoto ? (
-                <>
-                  <Image source={{ uri: program.imageUri }} style={styles.slidePhoto} />
-                  <View style={styles.slideScrim} />
-                </>
-              ) : (
-                <Ionicons
-                  name={categoryIcons[program.category]}
-                  size={110}
-                  color="rgba(255,255,255,0.14)"
-                  style={styles.slideWatermark}
-                />
-              )}
-              <View style={styles.slideBadge}>
-                <AppText style={styles.slideBadgeText}>{t(`category.${program.category}`)}</AppText>
-              </View>
-              <AppText style={styles.slideTitle} numberOfLines={2}>
-                {program.title}
-              </AppText>
-              <View style={styles.slideMetaRow}>
-                <Ionicons name="calendar-outline" size={13} color={withAlpha('#FFFFFF', 0.85)} />
-                <AppText style={styles.slideMetaText} numberOfLines={1}>
-                  {program.date}
+            <View key={program.id} style={{ width: windowWidth, paddingHorizontal: SIDE_MARGIN }}>
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => onPressItem(program)}
+                style={[styles.slide, { backgroundColor: color }]}
+              >
+                {hasPhoto ? (
+                  <>
+                    <Image source={{ uri: program.imageUri }} style={styles.slidePhoto} />
+                    <View style={styles.slideScrim} />
+                  </>
+                ) : (
+                  <Ionicons
+                    name={categoryIcons[program.category]}
+                    size={110}
+                    color="rgba(255,255,255,0.14)"
+                    style={styles.slideWatermark}
+                  />
+                )}
+                <View style={styles.slideBadge}>
+                  <AppText style={styles.slideBadgeText}>{t(`category.${program.category}`)}</AppText>
+                </View>
+                <AppText style={styles.slideTitle} numberOfLines={2}>
+                  {program.title}
                 </AppText>
-              </View>
-              <View style={styles.slideMetaRow}>
-                <Ionicons name="location-outline" size={13} color={withAlpha('#FFFFFF', 0.85)} />
-                <AppText style={styles.slideMetaText} numberOfLines={1}>
-                  {program.location}
-                </AppText>
-              </View>
-            </TouchableOpacity>
+                <View style={styles.slideMetaRow}>
+                  <Ionicons name="calendar-outline" size={13} color={withAlpha('#FFFFFF', 0.85)} />
+                  <AppText style={styles.slideMetaText} numberOfLines={1}>
+                    {program.date}
+                  </AppText>
+                </View>
+                <View style={styles.slideMetaRow}>
+                  <Ionicons name="location-outline" size={13} color={withAlpha('#FFFFFF', 0.85)} />
+                  <AppText style={styles.slideMetaText} numberOfLines={1}>
+                    {program.location}
+                  </AppText>
+                </View>
+              </TouchableOpacity>
+            </View>
           );
         })}
       </ScrollView>
@@ -124,15 +120,16 @@ export default function HighlightCarousel({
   );
 }
 
-const makeStyles = (colors: ColorPalette, slideWidth: number) =>
+const makeStyles = (colors: ColorPalette, windowWidth: number) =>
   StyleSheet.create({
     slide: {
-      width: slideWidth,
-      height: 140,
+      width: windowWidth - SIDE_MARGIN * 2,
+      height: 190,
       borderRadius: radius.lg,
       padding: spacing.md,
       overflow: 'hidden',
       justifyContent: 'flex-end',
+      ...shadow.card,
     },
     slideWatermark: {
       position: 'absolute',

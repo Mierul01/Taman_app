@@ -64,6 +64,18 @@ export function withAlpha(hex: string, alpha: number) {
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
 }
 
+// percent: negative darkens, positive lightens (e.g. -25 = 25% darker).
+export function shadeColor(hex: string, percent: number) {
+  const clean = hex.replace('#', '');
+  const r = parseInt(clean.substring(0, 2), 16);
+  const g = parseInt(clean.substring(2, 4), 16);
+  const b = parseInt(clean.substring(4, 6), 16);
+  const t = percent < 0 ? 0 : 255;
+  const p = Math.abs(percent) / 100;
+  const shade = (c: number) => Math.round((t - c) * p + c);
+  return `rgb(${shade(r)}, ${shade(g)}, ${shade(b)})`;
+}
+
 export function buildTypography(palette: ColorPalette) {
   return {
     h1: { fontSize: 28, fontWeight: '700' as const, color: palette.text },
