@@ -286,6 +286,7 @@ const makeStyles = (colors: ColorPalette) =>
       color: colors.textMuted,
       marginTop: spacing.md,
       lineHeight: 18,
+      textAlign: 'justify',
     },
     fieldLabel: {
       fontSize: 13,
