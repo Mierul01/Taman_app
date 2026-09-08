@@ -17,12 +17,13 @@ import AppText from '../components/AppText';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'BankAccountSettings'>;
 
-export default function BankAccountSettingsScreen({ navigation }: Props) {
+export default function BankAccountSettingsScreen({ navigation, route }: Props) {
   const colors = useThemeColors();
   const { t } = useLanguage();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
   const { getBankAccount, setBankAccount } = usePayments();
+  const feeType = route.params.feeType;
   const [bankName, setBankName] = useState('');
   const [methodGroup, setMethodGroup] = useState<PaymentMethodGroup>('bank');
   const [accountNumber, setAccountNumber] = useState('');
@@ -35,7 +36,12 @@ export default function BankAccountSettingsScreen({ navigation }: Props) {
 
   useEffect(() => {
     if (!user) return;
-    getBankAccount(user.parkName).then((info) => {
+    setLoading(true);
+    setBankName('');
+    setMethodGroup('bank');
+    setAccountNumber('');
+    setQrImageUri(undefined);
+    getBankAccount(user.parkName, feeType).then((info) => {
       if (info) {
         setBankName(info.bankName);
         setMethodGroup(info.methodGroup ?? 'bank');
@@ -43,11 +49,15 @@ export default function BankAccountSettingsScreen({ navigation }: Props) {
         setAccountHolder(info.accountHolder);
         setQrImageUri(info.qrImageUri);
       } else {
-        setAccountHolder(`${t('bankAccount.defaultHolderPrefix')} ${user.parkName}`);
+        setAccountHolder(
+          feeType === 'khairat'
+            ? t('bankAccount.defaultHolderPrefixKhairat')
+            : `${t('bankAccount.defaultHolderPrefix')} ${user.parkName}`
+        );
       }
       setLoading(false);
     });
-  }, [user?.parkName]);
+  }, [user?.parkName, feeType]);
 
   const handlePickQr = async () => {
     setPickingQr(true);
@@ -66,7 +76,7 @@ export default function BankAccountSettingsScreen({ navigation }: Props) {
   const handleSave = async () => {
     if (!user || !bankName.trim() || !accountNumber.trim() || !accountHolder.trim()) return;
     setSaving(true);
-    await setBankAccount(user.parkName, {
+    await setBankAccount(user.parkName, feeType, {
       bankName: bankName.trim(),
       accountNumber: accountNumber.trim(),
       accountHolder: accountHolder.trim(),
@@ -84,8 +94,8 @@ export default function BankAccountSettingsScreen({ navigation }: Props) {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       <ScreenHeader
-        title={t('bankAccount.title')}
-        subtitle={t('bankAccount.subtitle')}
+        title={feeType === 'khairat' ? t('bankAccount.titleKhairat') : t('bankAccount.titleYuran')}
+        subtitle={feeType === 'khairat' ? t('bankAccount.subtitleKhairat') : t('bankAccount.subtitleYuran')}
         onBack={() => navigation.goBack()}
       />
       <ScrollView contentContainerStyle={{ padding: spacing.lg }}>

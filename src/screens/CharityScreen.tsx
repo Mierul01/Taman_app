@@ -91,7 +91,7 @@ export default function CharityScreen() {
         <TouchableOpacity
           style={styles.manageCard}
           activeOpacity={0.85}
-          onPress={() => navigation.navigate('BankAccountSettings')}
+          onPress={() => navigation.navigate('BankAccountSettings', { feeType: 'khairat' })}
         >
           <View style={styles.manageIconWrap}>
             <Ionicons name="wallet-outline" size={20} color={colors.white} />

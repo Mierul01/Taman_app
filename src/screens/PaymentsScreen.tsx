@@ -92,7 +92,7 @@ export default function PaymentsScreen() {
         <TouchableOpacity
           style={styles.manageCard}
           activeOpacity={0.85}
-          onPress={() => navigation.navigate('BankAccountSettings')}
+          onPress={() => navigation.navigate('BankAccountSettings', { feeType: 'yuran' })}
         >
           <View style={styles.manageIconWrap}>
             <Ionicons name="wallet-outline" size={20} color={colors.white} />

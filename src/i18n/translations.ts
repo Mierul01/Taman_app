@@ -356,6 +356,11 @@ export const translations = {
     bankAccount: {
       title: 'Park Bank Account',
       subtitle: 'These details will be shown to all residents when making payments',
+      titleYuran: 'Fee Bank Account',
+      subtitleYuran: 'Shown to residents when paying park fees (yuran)',
+      titleKhairat: 'Khairat Bank Account',
+      subtitleKhairat: 'Shown to residents when contributing to khairat — this is a separate account from park fees, usually the mosque/surau account',
+      defaultHolderPrefixKhairat: 'Tabung Khairat',
       bankName: 'Bank Name',
       bankNamePlaceholder: 'e.g. Maybank',
       accountNumberPlaceholder: 'e.g. 5123 4567 8901',
@@ -733,6 +738,11 @@ export const translations = {
     bankAccount: {
       title: 'Akaun Bank Taman',
       subtitle: 'Butiran ini akan dipaparkan kepada semua penduduk semasa membuat bayaran',
+      titleYuran: 'Akaun Bank Yuran',
+      subtitleYuran: 'Dipaparkan kepada penduduk semasa membayar yuran taman',
+      titleKhairat: 'Akaun Bank Khairat',
+      subtitleKhairat: 'Dipaparkan kepada penduduk semasa menyumbang khairat — ini akaun berasingan daripada yuran taman, biasanya akaun masjid/surau',
+      defaultHolderPrefixKhairat: 'Tabung Khairat',
       bankName: 'Nama Bank',
       bankNamePlaceholder: 'Contoh: Maybank',
       accountNumberPlaceholder: 'Contoh: 5123 4567 8901',

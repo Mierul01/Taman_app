@@ -54,11 +54,11 @@ export default function PaymentDetailsModal({
   useEffect(() => {
     if (!visible || !user) return;
     setLoading(true);
-    getBankAccount(user.parkName).then((info) => {
+    getBankAccount(user.parkName, feeType).then((info) => {
       setBankInfo(info);
       setLoading(false);
     });
-  }, [visible, user?.parkName]);
+  }, [visible, user?.parkName, feeType]);
 
   useEffect(() => {
     if (!visible) {
@@ -134,7 +134,7 @@ export default function PaymentDetailsModal({
                 label={t('paymentModal.setupBank')}
                 onPress={() => {
                   onClose();
-                  navigation.navigate('BankAccountSettings');
+                  navigation.navigate('BankAccountSettings', { feeType });
                 }}
                 style={{ marginTop: spacing.sm }}
               />

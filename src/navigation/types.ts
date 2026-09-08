@@ -12,7 +12,7 @@ export type RootStackParamList = {
   Notifications: undefined;
   Settings: undefined;
   AdminPanel: undefined;
-  BankAccountSettings: undefined;
+  BankAccountSettings: { feeType: 'yuran' | 'khairat' };
 };
 
 export type MainTabParamList = {
