@@ -21,12 +21,16 @@ export type PaymentRecord = {
   feeType: 'yuran' | 'khairat';
   amount: number;
   date: string;
+  receiptUri?: string;
+  referenceNumber?: string;
 };
 
 export type BankAccountInfo = {
   bankName: string;
   accountNumber: string;
   accountHolder: string;
+  methodGroup?: 'bank' | 'ewallet' | 'other';
+  qrImageUri?: string;
 };
 
 const recordsCol = collection(db, 'paymentRecords');

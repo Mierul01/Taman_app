@@ -30,3 +30,41 @@ export async function pickAvatarImage(): Promise<AvatarPickResult> {
 export async function pickBannerImage(): Promise<AvatarPickResult> {
   return pickImage([16, 9]);
 }
+
+export async function pickReceiptImage(): Promise<AvatarPickResult> {
+  // No forced aspect/crop — bank transfer screenshots come in all shapes.
+  const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (!permission.granted) return { status: 'permission-denied' };
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images'],
+    allowsEditing: false,
+    quality: 0.5,
+    base64: true,
+  });
+
+  if (result.canceled || !result.assets?.length) return { status: 'cancelled' };
+  const asset = result.assets[0];
+  const uri = asset.base64 ? `data:${asset.mimeType ?? 'image/jpeg'};base64,${asset.base64}` : asset.uri;
+  return { status: 'success', uri };
+}
+
+export async function pickQrImage(): Promise<AvatarPickResult> {
+  // Square crop so the treasurer can trim out their banking-app chrome, and a
+  // high quality setting since a compressed/blurry QR can become unscannable.
+  const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+  if (!permission.granted) return { status: 'permission-denied' };
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: ['images'],
+    allowsEditing: true,
+    aspect: [1, 1],
+    quality: 0.92,
+    base64: true,
+  });
+
+  if (result.canceled || !result.assets?.length) return { status: 'cancelled' };
+  const asset = result.assets[0];
+  const uri = asset.base64 ? `data:${asset.mimeType ?? 'image/jpeg'};base64,${asset.base64}` : asset.uri;
+  return { status: 'success', uri };
+}

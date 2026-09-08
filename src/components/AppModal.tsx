@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Modal, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { radius, spacing, ColorPalette } from '../theme/theme';
 import { useThemeColors } from '../context/ThemeContext';
@@ -19,6 +20,7 @@ export default function AppModal({
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.overlay}>
+        <BlurView intensity={18} tint="dark" style={StyleSheet.absoluteFillObject} />
         <View style={styles.card}>
           <TouchableOpacity style={styles.closeButton} onPress={onClose} hitSlop={10}>
             <Ionicons name="close" size={18} color={colors.textMuted} />
@@ -38,7 +40,7 @@ const makeStyles = (colors: ColorPalette) =>
       left: 0,
       right: 0,
       bottom: 0,
-      backgroundColor: 'rgba(0,0,0,0.4)',
+      backgroundColor: 'rgba(0,0,0,0.12)',
       alignItems: 'center',
       justifyContent: 'center',
       padding: spacing.lg,

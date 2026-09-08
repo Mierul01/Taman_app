@@ -15,6 +15,12 @@ service cloud.firestore {
       return isSignedIn() && myProfile().role == 'admin' && myProfile().parkName == parkName;
     }
 
+    function isCommitteeOfPark(parkName) {
+      return isSignedIn()
+        && myProfile().role in ['admin', 'ajk', 'treasurer', 'chairman']
+        && myProfile().parkName == parkName;
+    }
+
     // One document per account, keyed by Firebase Auth uid.
     match /users/{userId} {
       allow read: if isSignedIn();
@@ -36,12 +42,12 @@ service cloud.firestore {
       allow update, delete: if false;
     }
 
-    // Park programs/events. Anyone signed in can read and propose one;
-    // only that park's admin can edit or remove one afterwards.
+    // Park programs/events. Anyone signed in can read; only that park's
+    // committee (AJK/treasurer/chairman/admin) can create, edit or remove one.
     match /programs/{programId} {
       allow read: if isSignedIn();
-      allow create: if isSignedIn();
-      allow update, delete: if isSignedIn() && isAdminOfPark(resource.data.parkName);
+      allow create: if isCommitteeOfPark(request.resource.data.parkName);
+      allow update, delete: if isCommitteeOfPark(resource.data.parkName) || isAdminOfPark(resource.data.parkName);
     }
 
     // One bank-account-details doc per park (doc id = encodeURIComponent(parkName)).

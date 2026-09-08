@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Modal, Pressable, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
 import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme';
@@ -98,6 +99,7 @@ export default function CustomTabBar({ state, navigation, insets }: BottomTabBar
 
       <Modal visible={moreOpen} transparent animationType="slide" onRequestClose={() => setMoreOpen(false)}>
         <View style={styles.modalRoot}>
+          <BlurView intensity={18} tint="dark" style={StyleSheet.absoluteFillObject} />
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setMoreOpen(false)} />
           <View style={[styles.sheet, { paddingBottom: insets.bottom + spacing.lg }]}>
             <View style={styles.sheetHandle} />
@@ -173,7 +175,7 @@ const makeStyles = (colors: ColorPalette) =>
     modalRoot: {
       flex: 1,
       justifyContent: 'flex-end',
-      backgroundColor: 'rgba(0,0,0,0.45)',
+      backgroundColor: 'rgba(0,0,0,0.15)',
     },
     sheet: {
       backgroundColor: colors.surface,

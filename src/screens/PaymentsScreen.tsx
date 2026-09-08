@@ -9,9 +9,11 @@ import ScreenHeader from '../components/ScreenHeader';
 import Button from '../components/Button';
 import AppModal from '../components/AppModal';
 import PaymentDetailsModal from '../components/PaymentDetailsModal';
+import PaymentRecordRow from '../components/PaymentRecordRow';
+import ImageViewerModal from '../components/ImageViewerModal';
 import { feeItems, FeeItem } from '../data/mockData';
 import { useAuth } from '../context/AuthContext';
-import { usePayments } from '../context/PaymentContext';
+import { usePayments, PaymentRecord } from '../context/PaymentContext';
 import AppText from '../components/AppText';
 
 export default function PaymentsScreen() {
@@ -25,19 +27,28 @@ export default function PaymentsScreen() {
   const [selected, setSelected] = useState<FeeItem | null>(null);
   const [payAmount, setPayAmount] = useState('');
   const [showDetails, setShowDetails] = useState(false);
-  const [paidTotals, setPaidTotals] = useState<Record<string, number>>({});
+  const [recordsByItem, setRecordsByItem] = useState<Record<string, PaymentRecord[]>>({});
+  const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
+  const [viewerUri, setViewerUri] = useState<string | null>(null);
 
   const canManageAccount = user ? ['treasurer', 'admin', 'chairman'].includes(user.role) : false;
   const isDependent = !!user?.dependentOf;
 
-  const loadTotals = useCallback(async () => {
-    if (!user) return;
+  const paidTotals = useMemo(() => {
     const totals: Record<string, number> = {};
     for (const item of feeItems) {
-      const records = await getUserPaymentRecords(user.email, item.id);
-      totals[item.id] = records.reduce((sum, r) => sum + r.amount, 0);
+      totals[item.id] = (recordsByItem[item.id] ?? []).reduce((sum, r) => sum + r.amount, 0);
     }
-    setPaidTotals(totals);
+    return totals;
+  }, [recordsByItem]);
+
+  const loadTotals = useCallback(async () => {
+    if (!user) return;
+    const byItem: Record<string, PaymentRecord[]> = {};
+    for (const item of feeItems) {
+      byItem[item.id] = await getUserPaymentRecords(user.email, item.id);
+    }
+    setRecordsByItem(byItem);
   }, [user?.email]);
 
   useFocusEffect(
@@ -78,9 +89,21 @@ export default function PaymentsScreen() {
       )}
 
       {canManageAccount && (
-        <TouchableOpacity style={styles.manageLink} onPress={() => navigation.navigate('BankAccountSettings')}>
-          <Ionicons name="settings-outline" size={15} color={colors.primary} />
-          <AppText style={styles.manageLinkText}>{t('payments.manageBank')}</AppText>
+        <TouchableOpacity
+          style={styles.manageCard}
+          activeOpacity={0.85}
+          onPress={() => navigation.navigate('BankAccountSettings')}
+        >
+          <View style={styles.manageIconWrap}>
+            <Ionicons name="wallet-outline" size={20} color={colors.white} />
+          </View>
+          <View style={{ flex: 1, marginLeft: spacing.md }}>
+            <AppText style={styles.manageTitle}>{t('payments.manageBank')}</AppText>
+            <AppText style={styles.manageSubtitle} numberOfLines={2}>
+              {t('payments.manageBankHint')}
+            </AppText>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
         </TouchableOpacity>
       )}
 
@@ -92,6 +115,8 @@ export default function PaymentsScreen() {
           const paid = paidTotals[item.id] ?? 0;
           const remaining = Math.max(0, item.amount - paid);
           const pct = Math.min(100, Math.round((paid / item.amount) * 100));
+          const records = recordsByItem[item.id] ?? [];
+          const expanded = !!expandedItems[item.id];
           return (
             <View style={styles.card}>
               <View style={styles.iconWrap}>
@@ -123,11 +148,35 @@ export default function PaymentsScreen() {
                     disabled={remaining <= 0}
                   />
                 )}
+                {records.length > 0 && (
+                  <>
+                    <TouchableOpacity
+                      style={styles.historyToggle}
+                      onPress={() => setExpandedItems((prev) => ({ ...prev, [item.id]: !prev[item.id] }))}
+                    >
+                      <AppText style={styles.historyToggleText}>
+                        {t(expanded ? 'paymentHistory.hideHistory' : 'paymentHistory.viewHistory', {
+                          count: records.length,
+                        })}
+                      </AppText>
+                      <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={14} color={colors.primary} />
+                    </TouchableOpacity>
+                    {expanded && (
+                      <View style={styles.historyList}>
+                        {records.map((record) => (
+                          <PaymentRecordRow key={record.id} record={record} onPressReceipt={setViewerUri} />
+                        ))}
+                      </View>
+                    )}
+                  </>
+                )}
               </View>
             </View>
           );
         }}
       />
+
+      <ImageViewerModal visible={!!viewerUri} uri={viewerUri} onClose={() => setViewerUri(null)} />
 
       {selected && (
         <AppModal visible={!showDetails} onClose={closeAmountModal}>
@@ -166,6 +215,23 @@ export default function PaymentsScreen() {
 
 const makeStyles = (colors: ColorPalette) =>
   StyleSheet.create({
+    historyToggle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginTop: spacing.sm,
+    },
+    historyToggleText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.primary,
+    },
+    historyList: {
+      marginTop: spacing.xs,
+      paddingTop: spacing.xs,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
+    },
     dependentBanner: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -182,17 +248,34 @@ const makeStyles = (colors: ColorPalette) =>
       color: colors.primaryDark,
       lineHeight: 17,
     },
-    manageLink: {
+    manageCard: {
       flexDirection: 'row',
       alignItems: 'center',
-      gap: 6,
+      backgroundColor: colors.surface,
       marginHorizontal: spacing.lg,
-      marginTop: spacing.md,
+      marginTop: spacing.lg,
+      padding: spacing.md,
+      borderRadius: radius.md,
+      ...shadow.card,
     },
-    manageLinkText: {
-      color: colors.primary,
-      fontWeight: '600',
-      fontSize: 13,
+    manageIconWrap: {
+      width: 42,
+      height: 42,
+      borderRadius: 21,
+      backgroundColor: colors.primary,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    manageTitle: {
+      fontSize: 14,
+      fontWeight: '700',
+      color: colors.text,
+    },
+    manageSubtitle: {
+      fontSize: 12,
+      color: colors.textMuted,
+      marginTop: 2,
+      lineHeight: 16,
     },
     card: {
       flexDirection: 'row',

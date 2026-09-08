@@ -1,4 +1,4 @@
-# Neighbourly
+# ResiOne
 
 A mobile app for managing a residents' association (*persatuan penduduk taman*) — fee collection, charity funds, community programs, committee contacts, and admin tools, all in one place. Built with Expo/React Native and Firebase.
 

@@ -1,11 +1,13 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { radius, shadow, spacing, withAlpha, ColorPalette } from '../theme/theme';
 import { useThemeColors, useThemeTypography } from '../context/ThemeContext';
 import { useLanguage } from '../context/LanguageContext';
 import ScreenHeader from '../components/ScreenHeader';
+import PaymentRecordRow from '../components/PaymentRecordRow';
+import ImageViewerModal from '../components/ImageViewerModal';
 import { feeItems, charityItems, totalHouseholds } from '../data/mockData';
 import { useAuth } from '../context/AuthContext';
 import { usePayments, PaymentRecord } from '../context/PaymentContext';
@@ -16,14 +18,17 @@ type ItemSummary = {
   title: string;
   collected: number;
   contributors: number;
+  records: PaymentRecord[];
 };
 
 function summarize(records: PaymentRecord[], items: { id: string; title: string }[]): ItemSummary[] {
   return items.map((item) => {
-    const matching = records.filter((r) => r.feeId === item.id);
+    const matching = records
+      .filter((r) => r.feeId === item.id)
+      .sort((a, b) => b.date.localeCompare(a.date));
     const collected = matching.reduce((sum, r) => sum + r.amount, 0);
     const contributors = new Set(matching.map((r) => r.userEmail)).size;
-    return { id: item.id, title: item.title, collected, contributors };
+    return { id: item.id, title: item.title, collected, contributors, records: matching };
   });
 }
 
@@ -32,11 +37,17 @@ function CollectionGroup({
   icon,
   color,
   records,
+  expandedIds,
+  onToggle,
+  onPressReceipt,
 }: {
   title: string;
   icon: keyof typeof Ionicons.glyphMap;
   color: string;
   records: ItemSummary[];
+  expandedIds: Record<string, boolean>;
+  onToggle: (id: string) => void;
+  onPressReceipt: (uri: string) => void;
 }) {
   const colors = useThemeColors();
   const typography = useThemeTypography();
@@ -56,6 +67,7 @@ function CollectionGroup({
       </View>
       {records.map((r) => {
         const pct = Math.min(100, Math.round((r.contributors / totalHouseholds) * 100));
+        const expanded = !!expandedIds[r.id];
         return (
           <View key={r.id} style={styles.recordRow}>
             <View style={styles.recordTop}>
@@ -70,6 +82,25 @@ function CollectionGroup({
             <AppText style={styles.recordMeta}>
               {t('collections.contributorsLine', { count: r.contributors, total: totalHouseholds })}
             </AppText>
+            {r.records.length > 0 && (
+              <>
+                <TouchableOpacity style={styles.historyToggle} onPress={() => onToggle(r.id)}>
+                  <AppText style={styles.historyToggleText}>
+                    {t(expanded ? 'paymentHistory.hideHistory' : 'paymentHistory.viewHistory', {
+                      count: r.records.length,
+                    })}
+                  </AppText>
+                  <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={14} color={colors.primary} />
+                </TouchableOpacity>
+                {expanded && (
+                  <View style={styles.historyList}>
+                    {r.records.map((record) => (
+                      <PaymentRecordRow key={record.id} record={record} showContributor onPressReceipt={onPressReceipt} />
+                    ))}
+                  </View>
+                )}
+              </>
+            )}
           </View>
         );
       })}
@@ -86,6 +117,8 @@ export default function CollectionsScreen() {
   const [feeSummaries, setFeeSummaries] = useState<ItemSummary[]>([]);
   const [charitySummaries, setCharitySummaries] = useState<ItemSummary[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
+  const [viewerUri, setViewerUri] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     if (!user) return;
@@ -101,6 +134,8 @@ export default function CollectionsScreen() {
       load();
     }, [load])
   );
+
+  const toggle = (id: string) => setExpandedIds((prev) => ({ ...prev, [id]: !prev[id] }));
 
   const totalFees = feeSummaries.reduce((sum, r) => sum + r.collected, 0);
   const totalCharity = charitySummaries.reduce((sum, r) => sum + r.collected, 0);
@@ -124,13 +159,31 @@ export default function CollectionsScreen() {
 
         {!loading && (
           <View style={{ paddingHorizontal: spacing.lg, marginTop: spacing.md, gap: spacing.md }}>
-            <CollectionGroup title={t('collections.feeCollections')} icon="card" color="#2E6FD9" records={feeSummaries} />
-            <CollectionGroup title={t('collections.charityCollections')} icon="heart" color="#D9862E" records={charitySummaries} />
+            <CollectionGroup
+              title={t('collections.feeCollections')}
+              icon="card"
+              color="#2E6FD9"
+              records={feeSummaries}
+              expandedIds={expandedIds}
+              onToggle={toggle}
+              onPressReceipt={setViewerUri}
+            />
+            <CollectionGroup
+              title={t('collections.charityCollections')}
+              icon="heart"
+              color="#D9862E"
+              records={charitySummaries}
+              expandedIds={expandedIds}
+              onToggle={toggle}
+              onPressReceipt={setViewerUri}
+            />
           </View>
         )}
 
         <AppText style={styles.footnote}>{t('collections.footnote', { total: totalHouseholds })}</AppText>
       </ScrollView>
+
+      <ImageViewerModal visible={!!viewerUri} uri={viewerUri} onClose={() => setViewerUri(null)} />
     </View>
   );
 }
@@ -217,6 +270,23 @@ const makeStyles = (colors: ColorPalette) =>
       fontSize: 11,
       color: colors.textMuted,
       marginTop: spacing.xs,
+    },
+    historyToggle: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+      marginTop: spacing.sm,
+    },
+    historyToggleText: {
+      fontSize: 12,
+      fontWeight: '600',
+      color: colors.primary,
+    },
+    historyList: {
+      marginTop: spacing.xs,
+      paddingTop: spacing.xs,
+      borderTopWidth: 1,
+      borderTopColor: colors.border,
     },
     footnote: {
       fontSize: 11,
