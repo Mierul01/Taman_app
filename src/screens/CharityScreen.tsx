@@ -109,7 +109,7 @@ export default function CharityScreen() {
       <FlatList
         data={charityItems}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.xl }}
+        contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.xl }}
         renderItem={({ item }) => {
           const contributed = contributedTotals[item.id] ?? 0;
           const records = recordsByItem[item.id] ?? [];

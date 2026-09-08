@@ -110,7 +110,7 @@ export default function PaymentsScreen() {
       <FlatList
         data={feeItems}
         keyExtractor={(item) => item.id}
-        contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.xl }}
+        contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.xl }}
         renderItem={({ item }) => {
           const paid = paidTotals[item.id] ?? 0;
           const remaining = Math.max(0, item.amount - paid);
