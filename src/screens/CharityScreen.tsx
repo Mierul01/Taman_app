@@ -87,29 +87,30 @@ export default function CharityScreen() {
         </View>
       )}
 
-      {canManageAccount && (
-        <TouchableOpacity
-          style={styles.manageCard}
-          activeOpacity={0.85}
-          onPress={() => navigation.navigate('BankAccountSettings', { feeType: 'khairat' })}
-        >
-          <View style={styles.manageIconWrap}>
-            <Ionicons name="wallet-outline" size={20} color={colors.white} />
-          </View>
-          <View style={{ flex: 1, marginLeft: spacing.md }}>
-            <AppText style={styles.manageTitle}>{t('charity.manageBank')}</AppText>
-            <AppText style={styles.manageSubtitle} numberOfLines={2}>
-              {t('charity.manageBankHint')}
-            </AppText>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-        </TouchableOpacity>
-      )}
-
       <FlatList
         data={charityItems}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.xl }}
+        ListHeaderComponent={
+          canManageAccount ? (
+            <TouchableOpacity
+              style={styles.manageCard}
+              activeOpacity={0.85}
+              onPress={() => navigation.navigate('BankAccountSettings', { feeType: 'khairat' })}
+            >
+              <View style={styles.manageIconWrap}>
+                <Ionicons name="wallet-outline" size={20} color={colors.white} />
+              </View>
+              <View style={{ flex: 1, marginLeft: spacing.md }}>
+                <AppText style={styles.manageTitle}>{t('charity.manageBank')}</AppText>
+                <AppText style={styles.manageSubtitle} numberOfLines={2}>
+                  {t('charity.manageBankHint')}
+                </AppText>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            </TouchableOpacity>
+          ) : null
+        }
         renderItem={({ item }) => {
           const contributed = contributedTotals[item.id] ?? 0;
           const records = recordsByItem[item.id] ?? [];
@@ -241,8 +242,7 @@ const makeStyles = (colors: ColorPalette) =>
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: colors.surface,
-      marginHorizontal: spacing.lg,
-      marginTop: spacing.lg,
+      marginBottom: spacing.lg,
       padding: spacing.md,
       borderRadius: radius.md,
       ...shadow.card,

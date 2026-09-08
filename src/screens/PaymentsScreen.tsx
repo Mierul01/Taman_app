@@ -88,29 +88,30 @@ export default function PaymentsScreen() {
         </View>
       )}
 
-      {canManageAccount && (
-        <TouchableOpacity
-          style={styles.manageCard}
-          activeOpacity={0.85}
-          onPress={() => navigation.navigate('BankAccountSettings', { feeType: 'yuran' })}
-        >
-          <View style={styles.manageIconWrap}>
-            <Ionicons name="wallet-outline" size={20} color={colors.white} />
-          </View>
-          <View style={{ flex: 1, marginLeft: spacing.md }}>
-            <AppText style={styles.manageTitle}>{t('payments.manageBank')}</AppText>
-            <AppText style={styles.manageSubtitle} numberOfLines={2}>
-              {t('payments.manageBankHint')}
-            </AppText>
-          </View>
-          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-        </TouchableOpacity>
-      )}
-
       <FlatList
         data={feeItems}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.xl }}
+        ListHeaderComponent={
+          canManageAccount ? (
+            <TouchableOpacity
+              style={styles.manageCard}
+              activeOpacity={0.85}
+              onPress={() => navigation.navigate('BankAccountSettings', { feeType: 'yuran' })}
+            >
+              <View style={styles.manageIconWrap}>
+                <Ionicons name="wallet-outline" size={20} color={colors.white} />
+              </View>
+              <View style={{ flex: 1, marginLeft: spacing.md }}>
+                <AppText style={styles.manageTitle}>{t('payments.manageBank')}</AppText>
+                <AppText style={styles.manageSubtitle} numberOfLines={2}>
+                  {t('payments.manageBankHint')}
+                </AppText>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            </TouchableOpacity>
+          ) : null
+        }
         renderItem={({ item }) => {
           const paid = paidTotals[item.id] ?? 0;
           const remaining = Math.max(0, item.amount - paid);
@@ -252,8 +253,7 @@ const makeStyles = (colors: ColorPalette) =>
       flexDirection: 'row',
       alignItems: 'center',
       backgroundColor: colors.surface,
-      marginHorizontal: spacing.lg,
-      marginTop: spacing.lg,
+      marginBottom: spacing.lg,
       padding: spacing.md,
       borderRadius: radius.md,
       ...shadow.card,
