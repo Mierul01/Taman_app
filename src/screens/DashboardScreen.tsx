@@ -13,10 +13,10 @@ import { useAuth, User } from '../context/AuthContext';
 import { usePayments } from '../context/PaymentContext';
 import {
   Program,
+  FeeItem,
   categoryColors,
   categoryIcons,
   emergencyContacts,
-  feeItems,
   notifications,
   formatNotificationDate,
 } from '../data/mockData';
@@ -28,7 +28,6 @@ import { toTitleCase } from '../utils/formatName';
 
 type Props = BottomTabScreenProps<MainTabParamList, 'Dashboard'>;
 
-const totalFeeAmount = feeItems.reduce((sum, item) => sum + item.amount, 0);
 const FEE_RING_SIZE = 56;
 const FEE_RING_STROKE = 5;
 const FEE_RING_RADIUS = (FEE_RING_SIZE - FEE_RING_STROKE) / 2;
@@ -51,9 +50,10 @@ export default function DashboardScreen({ navigation }: Props) {
   const insets = useSafeAreaInsets();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user, getParkUsers } = useAuth();
-  const { getUserPaymentRecords } = usePayments();
+  const { getUserPaymentRecords, getFeeItems } = usePayments();
   const [upcoming, setUpcoming] = useState<Program[]>([]);
   const [upcomingAll, setUpcomingAll] = useState<Program[]>([]);
+  const [feeItems, setFeeItemsState] = useState<FeeItem[]>([]);
   const [paidTotal, setPaidTotal] = useState(0);
   const [paidByItem, setPaidByItem] = useState<Record<string, number>>({});
   const [feeExpanded, setFeeExpanded] = useState(false);
@@ -80,9 +80,11 @@ export default function DashboardScreen({ navigation }: Props) {
     useCallback(() => {
       if (!user) return;
       (async () => {
+        const items = await getFeeItems(user.parkName);
+        setFeeItemsState(items);
         let paid = 0;
         const byItem: Record<string, number> = {};
-        for (const item of feeItems) {
+        for (const item of items) {
           const records = await getUserPaymentRecords(user.email, item.id);
           const itemPaid = records.reduce((sum, r) => sum + r.amount, 0);
           byItem[item.id] = itemPaid;
@@ -91,7 +93,7 @@ export default function DashboardScreen({ navigation }: Props) {
         setPaidTotal(paid);
         setPaidByItem(byItem);
       })();
-    }, [user?.email])
+    }, [user?.email, user?.parkName])
   );
 
   useFocusEffect(
@@ -119,8 +121,9 @@ export default function DashboardScreen({ navigation }: Props) {
     return counts;
   }, [upcomingAll]);
 
+  const totalFeeAmount = useMemo(() => feeItems.reduce((sum, item) => sum + item.amount, 0), [feeItems]);
   const feeRemaining = Math.max(0, totalFeeAmount - paidTotal);
-  const feePct = Math.min(100, Math.round((paidTotal / totalFeeAmount) * 100));
+  const feePct = totalFeeAmount > 0 ? Math.min(100, Math.round((paidTotal / totalFeeAmount) * 100)) : 0;
 
   const upcomingWithImages = useMemo(
     () => upcoming.map((program) => ({ ...program, imageUri: program.imageUri ?? CATEGORY_FALLBACK_IMAGES[program.category] })),

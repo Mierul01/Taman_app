@@ -10,6 +10,7 @@ import {
   where,
 } from 'firebase/firestore';
 import { db } from '../firebase/config';
+import { feeItems as defaultFeeItems, FeeItem } from '../data/mockData';
 
 export type PaymentRecord = {
   id: string;
@@ -35,6 +36,7 @@ export type BankAccountInfo = {
 
 const recordsCol = collection(db, 'paymentRecords');
 const bankAccountsCol = collection(db, 'bankAccounts');
+const feeSettingsCol = collection(db, 'feeSettings');
 
 export type FeeType = 'yuran' | 'khairat';
 
@@ -44,6 +46,8 @@ type PaymentContextType = {
   getParkPaymentRecords: (parkName: string) => Promise<PaymentRecord[]>;
   getBankAccount: (parkName: string, feeType: FeeType) => Promise<BankAccountInfo | null>;
   setBankAccount: (parkName: string, feeType: FeeType, info: BankAccountInfo) => Promise<void>;
+  getFeeItems: (parkName: string) => Promise<FeeItem[]>;
+  setFeeItems: (parkName: string, items: FeeItem[]) => Promise<void>;
 };
 
 const PaymentContext = createContext<PaymentContextType | undefined>(undefined);
@@ -92,6 +96,16 @@ export const PaymentProvider = ({ children }: { children: React.ReactNode }) => 
     await setDoc(doc(bankAccountsCol, bankAccountDocId(parkName, feeType)), info);
   };
 
+  const getFeeItems = async (parkName: string): Promise<FeeItem[]> => {
+    const snap = await getDoc(doc(feeSettingsCol, encodeURIComponent(parkName)));
+    const items = snap.exists() ? (snap.data().items as FeeItem[] | undefined) : undefined;
+    return items && items.length > 0 ? items : defaultFeeItems;
+  };
+
+  const setFeeItems = async (parkName: string, items: FeeItem[]) => {
+    await setDoc(doc(feeSettingsCol, encodeURIComponent(parkName)), { parkName, items });
+  };
+
   const value = useMemo(
     () => ({
       addPaymentRecord,
@@ -99,6 +113,8 @@ export const PaymentProvider = ({ children }: { children: React.ReactNode }) => 
       getParkPaymentRecords,
       getBankAccount,
       setBankAccount,
+      getFeeItems,
+      setFeeItems,
     }),
     []
   );

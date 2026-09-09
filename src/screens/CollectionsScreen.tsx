@@ -8,7 +8,7 @@ import { useLanguage } from '../context/LanguageContext';
 import ScreenHeader from '../components/ScreenHeader';
 import PaymentRecordRow from '../components/PaymentRecordRow';
 import ImageViewerModal from '../components/ImageViewerModal';
-import { feeItems, charityItems, totalHouseholds } from '../data/mockData';
+import { charityItems, totalHouseholds } from '../data/mockData';
 import { useAuth } from '../context/AuthContext';
 import { usePayments, PaymentRecord } from '../context/PaymentContext';
 import AppText from '../components/AppText';
@@ -113,7 +113,7 @@ export default function CollectionsScreen() {
   const { t } = useLanguage();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
-  const { getParkPaymentRecords } = usePayments();
+  const { getParkPaymentRecords, getFeeItems } = usePayments();
   const [feeSummaries, setFeeSummaries] = useState<ItemSummary[]>([]);
   const [charitySummaries, setCharitySummaries] = useState<ItemSummary[]>([]);
   const [loading, setLoading] = useState(true);
@@ -123,7 +123,10 @@ export default function CollectionsScreen() {
   const load = useCallback(async () => {
     if (!user) return;
     setLoading(true);
-    const records = await getParkPaymentRecords(user.parkName);
+    const [records, feeItems] = await Promise.all([
+      getParkPaymentRecords(user.parkName),
+      getFeeItems(user.parkName),
+    ]);
     setFeeSummaries(summarize(records.filter((r) => r.feeType === 'yuran'), feeItems));
     setCharitySummaries(summarize(records.filter((r) => r.feeType === 'khairat'), charityItems));
     setLoading(false);

@@ -16,6 +16,7 @@ import NotificationsScreen from '../screens/NotificationsScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import AdminPanelScreen from '../screens/AdminPanelScreen';
 import BankAccountSettingsScreen from '../screens/BankAccountSettingsScreen';
+import ManageFeeItemsScreen from '../screens/ManageFeeItemsScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -51,6 +52,7 @@ export default function RootNavigator() {
           <Stack.Screen name="Settings" component={SettingsScreen} />
           <Stack.Screen name="AdminPanel" component={AdminPanelScreen} />
           <Stack.Screen name="BankAccountSettings" component={BankAccountSettingsScreen} />
+          <Stack.Screen name="ManageFeeItems" component={ManageFeeItemsScreen} />
         </>
       ) : (
         <>

@@ -21,6 +21,12 @@ service cloud.firestore {
         && myProfile().parkName == parkName;
     }
 
+    function isTreasuryOfPark(parkName) {
+      return isSignedIn()
+        && myProfile().role in ['admin', 'treasurer', 'chairman']
+        && myProfile().parkName == parkName;
+    }
+
     // One document per account, keyed by Firebase Auth uid.
     match /users/{userId} {
       allow read: if isSignedIn();
@@ -54,6 +60,15 @@ service cloud.firestore {
     match /bankAccounts/{parkId} {
       allow read: if isSignedIn();
       allow write: if isSignedIn() && myProfile().role in ['admin', 'treasurer', 'chairman'];
+    }
+
+    // Fee item names/amounts per park (doc id = encodeURIComponent(parkName), and
+    // the doc itself carries a plain parkName field so this rule can check it
+    // without needing to decode the id). Anyone in the park can read them to
+    // pay; only that park's treasury roles can edit.
+    match /feeSettings/{parkId} {
+      allow read: if isSignedIn();
+      allow write: if isTreasuryOfPark(request.resource.data.parkName);
     }
 
     // Public directory of registered park names (doc id = encodeURIComponent(parkName)),

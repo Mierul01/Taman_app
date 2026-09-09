@@ -11,7 +11,7 @@ import AppModal from '../components/AppModal';
 import PaymentDetailsModal from '../components/PaymentDetailsModal';
 import PaymentRecordRow from '../components/PaymentRecordRow';
 import ImageViewerModal from '../components/ImageViewerModal';
-import { feeItems, FeeItem } from '../data/mockData';
+import { FeeItem } from '../data/mockData';
 import { useAuth } from '../context/AuthContext';
 import { usePayments, PaymentRecord } from '../context/PaymentContext';
 import AppText from '../components/AppText';
@@ -22,8 +22,9 @@ export default function PaymentsScreen() {
   const { t } = useLanguage();
   const styles = useMemo(() => makeStyles(colors), [colors]);
   const { user } = useAuth();
-  const { getUserPaymentRecords } = usePayments();
+  const { getUserPaymentRecords, getFeeItems } = usePayments();
   const navigation = useNavigation<any>();
+  const [feeItems, setFeeItemsState] = useState<FeeItem[]>([]);
   const [selected, setSelected] = useState<FeeItem | null>(null);
   const [payAmount, setPayAmount] = useState('');
   const [showDetails, setShowDetails] = useState(false);
@@ -40,16 +41,18 @@ export default function PaymentsScreen() {
       totals[item.id] = (recordsByItem[item.id] ?? []).reduce((sum, r) => sum + r.amount, 0);
     }
     return totals;
-  }, [recordsByItem]);
+  }, [recordsByItem, feeItems]);
 
   const loadTotals = useCallback(async () => {
     if (!user) return;
+    const items = await getFeeItems(user.parkName);
+    setFeeItemsState(items);
     const byItem: Record<string, PaymentRecord[]> = {};
-    for (const item of feeItems) {
+    for (const item of items) {
       byItem[item.id] = await getUserPaymentRecords(user.email, item.id);
     }
     setRecordsByItem(byItem);
-  }, [user?.email]);
+  }, [user?.email, user?.parkName]);
 
   useFocusEffect(
     useCallback(() => {
@@ -94,22 +97,40 @@ export default function PaymentsScreen() {
         contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.xl }}
         ListHeaderComponent={
           canManageAccount ? (
-            <TouchableOpacity
-              style={styles.manageCard}
-              activeOpacity={0.85}
-              onPress={() => navigation.navigate('BankAccountSettings', { feeType: 'yuran' })}
-            >
-              <View style={styles.manageIconWrap}>
-                <Ionicons name="wallet-outline" size={20} color={colors.white} />
-              </View>
-              <View style={{ flex: 1, marginLeft: spacing.md }}>
-                <AppText style={styles.manageTitle}>{t('payments.manageBank')}</AppText>
-                <AppText style={styles.manageSubtitle} numberOfLines={2}>
-                  {t('payments.manageBankHint')}
-                </AppText>
-              </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-            </TouchableOpacity>
+            <>
+              <TouchableOpacity
+                style={styles.manageCard}
+                activeOpacity={0.85}
+                onPress={() => navigation.navigate('BankAccountSettings', { feeType: 'yuran' })}
+              >
+                <View style={styles.manageIconWrap}>
+                  <Ionicons name="wallet-outline" size={20} color={colors.white} />
+                </View>
+                <View style={{ flex: 1, marginLeft: spacing.md }}>
+                  <AppText style={styles.manageTitle}>{t('payments.manageBank')}</AppText>
+                  <AppText style={styles.manageSubtitle} numberOfLines={2}>
+                    {t('payments.manageBankHint')}
+                  </AppText>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.manageCard}
+                activeOpacity={0.85}
+                onPress={() => navigation.navigate('ManageFeeItems')}
+              >
+                <View style={styles.manageIconWrap}>
+                  <Ionicons name="pricetag-outline" size={20} color={colors.white} />
+                </View>
+                <View style={{ flex: 1, marginLeft: spacing.md }}>
+                  <AppText style={styles.manageTitle}>{t('payments.manageFees')}</AppText>
+                  <AppText style={styles.manageSubtitle} numberOfLines={2}>
+                    {t('payments.manageFeesHint')}
+                  </AppText>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+              </TouchableOpacity>
+            </>
           ) : null
         }
         renderItem={({ item }) => {
